@@ -1752,37 +1752,6 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
       RenderToSurfaceInternal(renderTarget.Surface0, renderContext);
     }
 
-    protected ICollection<FrameworkElement> GetFEChildren()
-    {
-      ICollection<UIElement> children = GetChildren();
-      ICollection<FrameworkElement> result = new List<FrameworkElement>(children.Count);
-      foreach (UIElement child in children)
-      {
-        FrameworkElement fe = child as FrameworkElement;
-        if (fe != null)
-          result.Add(fe);
-      }
-      return result;
-    }
-
-    #endregion
-
-    public override void SaveUIState(IDictionary<string, object> state, string prefix)
-    {
-      base.SaveUIState(state, prefix);
-      if (HasFocus)
-        state[prefix + "/Focused"] = true;
-    }
-
-    public override void RestoreUIState(IDictionary<string, object> state, string prefix)
-    {
-      base.RestoreUIState(state, prefix);
-      object focused;
-      bool? bFocused;
-      if (state.TryGetValue(prefix + "/Focused", out focused) && (bFocused = focused as bool?).HasValue && bFocused.Value)
-        SetFocusPrio = SetFocusPriority.RestoreState;
-    }
-
     public virtual void DoRender(RenderContext localRenderContext)
     {
     }
@@ -1828,40 +1797,6 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
       // Restore standard transformation matrix
       if (oldTransform.HasValue)
         GraphicsDevice.FinalTransform = oldTransform.Value;
-    }
-
-    /// <summary>
-    /// Render the current Opacity brush to a rectangle covering our the given bounds. Blending is applied such that destination 
-    /// RGB will remain unchanged while destination alpha will be modulated by the opacity brush alpha.
-    /// </summary>
-    /// <param name="renderContext">Context information</param>
-    /// <param name="bounds">Rectangle to use for drawing the brush</param>
-    private void RenderOpacityBrush(RenderContext renderContext)
-    {
-        Brushes.Brush opacityMask = OpacityMask;
-        if (opacityMask != null)
-        {
-            // If the control bounds have changed we need to update our primitive context to make the 
-            // texture coordinates match up
-            if (_updateOpacityMask || _opacityMaskContext == null || _lastOccupiedTransformedBounds != renderContext.OccupiedTransformedBounds)
-            {
-                UpdateOpacityMask(renderContext.OccupiedTransformedBounds, renderContext.ZOrder);
-                _lastOccupiedTransformedBounds = renderContext.OccupiedTransformedBounds;
-                _updateOpacityMask = false;
-            }
-
-            GraphicsDevice.EnableAlphaChannelBlending();
-            GraphicsDevice.DisableAlphaTest();
-
-            // Now render the OpacityMask brush
-            if (opacityMask.BeginRenderBrush(_opacityMaskContext, new RenderContext(Matrix.Identity, _lastOccupiedTransformedBounds)))
-            {
-                _opacityMaskContext.Render(0);
-                opacityMask.EndRender();
-            }
-            GraphicsDevice.DisableAlphaChannelBlending();
-            GraphicsDevice.EnableAlphaTest();
-        }
     }
 
     private static RectangleF CalculateBoundingBox(RectangleF rectangle, Matrix transformation)
@@ -2025,7 +1960,43 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
       PrimitiveBuffer.SetPrimitiveBuffer(ref _effectContext, ref verts, PrimitiveType.TriangleFan);
     }
 
+    #endregion
+
     #region Opacitymask
+
+    /// <summary>
+    /// Render the current Opacity brush to a rectangle covering our the given bounds. Blending is applied such that destination 
+    /// RGB will remain unchanged while destination alpha will be modulated by the opacity brush alpha.
+    /// </summary>
+    /// <param name="renderContext">Context information</param>
+    /// <param name="bounds">Rectangle to use for drawing the brush</param>
+    private void RenderOpacityBrush(RenderContext renderContext)
+    {
+        Brushes.Brush opacityMask = OpacityMask;
+        if (opacityMask != null)
+        {
+            // If the control bounds have changed we need to update our primitive context to make the 
+            // texture coordinates match up
+            if (_updateOpacityMask || _opacityMaskContext == null || _lastOccupiedTransformedBounds != renderContext.OccupiedTransformedBounds)
+            {
+                UpdateOpacityMask(renderContext.OccupiedTransformedBounds, renderContext.ZOrder);
+                _lastOccupiedTransformedBounds = renderContext.OccupiedTransformedBounds;
+                _updateOpacityMask = false;
+            }
+
+            GraphicsDevice.EnableAlphaChannelBlending();
+            GraphicsDevice.DisableAlphaTest();
+
+            // Now render the OpacityMask brush
+            if (opacityMask.BeginRenderBrush(_opacityMaskContext, new RenderContext(Matrix.Identity, _lastOccupiedTransformedBounds)))
+            {
+                _opacityMaskContext.Render(0);
+                opacityMask.EndRender();
+            }
+            GraphicsDevice.DisableAlphaChannelBlending();
+            GraphicsDevice.EnableAlphaTest();
+        }
+    }
 
     void UpdateOpacityMask(RectangleF bounds, float zPos)
     {
