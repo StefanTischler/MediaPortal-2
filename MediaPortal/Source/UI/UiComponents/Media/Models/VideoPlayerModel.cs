@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -60,7 +60,7 @@ namespace MediaPortal.UiComponents.Media.Models
     {
       // base.Update is abstract
       IPlayerContextManager playerContextManager = ServiceRegistration.Get<IPlayerContextManager>();
-      IPlayerContext secondaryPlayerContext = playerContextManager.GetPlayerContext(PlayerManagerConsts.SECONDARY_SLOT);
+      IPlayerContext secondaryPlayerContext = playerContextManager.SecondaryPlayerContext;
       IVideoPlayer pipPlayer = secondaryPlayerContext == null ? null : secondaryPlayerContext.CurrentPlayer as IVideoPlayer;
       IInputManager inputManager = ServiceRegistration.Get<IInputManager>();
 

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -193,6 +193,7 @@ namespace MediaPortal.UI.SkinEngine.InputManagement
       _terminatedEvent.Set();
       _terminatedEvent.Close();
       _inputAvailableEvent.Close();
+      _terminatedEvent = null;
     }
 
     public static InputManager Instance
@@ -239,7 +240,7 @@ namespace MediaPortal.UI.SkinEngine.InputManagement
 
     public bool IsTerminated
     {
-      get { return _terminatedEvent.WaitOne(0); }
+      get { return _terminatedEvent == null || _terminatedEvent.WaitOne(0); }
     }
 
     protected bool IsEventAvailable
@@ -343,6 +344,8 @@ namespace MediaPortal.UI.SkinEngine.InputManagement
 
     protected void EnqueueEvent(InputEvent evt)
     {
+      if (IsTerminated)
+        return;
       lock (_syncObj)
       {
         _inputEventQueue.Enqueue(evt);
@@ -352,6 +355,8 @@ namespace MediaPortal.UI.SkinEngine.InputManagement
 
     protected void EnqueueCommand(ParameterlessMethod command)
     {
+      if (IsTerminated)
+        return;
       lock (_syncObj)
       {
         _commandQueue.Enqueue(command);

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -253,11 +253,11 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
 
     #region Rendering
 
-    public override void DoRender(RenderContext localRenderContext)
+    public override void RenderOverride(RenderContext localRenderContext)
     {
       PerformLayout(localRenderContext);
 
-      base.DoRender(localRenderContext);
+      base.RenderOverride(localRenderContext);
       if (_backgroundContext != null)
       {
         if (Background.BeginRenderBrush(_backgroundContext, localRenderContext))
@@ -305,6 +305,9 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
 
     #region Measure & Arrange
 
+    // Be careful to always call this method from subclasses. This is necessary to satisfy the Measure/Arrange contract for our
+    // TemplateControl (if only ArrangeOverride() is called but not CalculateInnerDesiredSize(), the TemplateControl could be
+    // arranged without having been measured - which is illegal).
     protected override SizeF CalculateInnerDesiredSize(SizeF totalSize)
     {
       FrameworkElement templateControl = _initializedTemplateControl;

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -24,9 +24,11 @@
 
 using System;
 using MediaPortal.Common.General;
-using MediaPortal.Plugins.SlimTvClient.Interfaces.Items;
+using MediaPortal.Plugins.SlimTv.Client.Models;
+using MediaPortal.Plugins.SlimTv.Interfaces;
+using MediaPortal.Plugins.SlimTv.Interfaces.Items;
 
-namespace MediaPortal.Plugins.SlimTvClient.Helpers
+namespace MediaPortal.Plugins.SlimTv.Client.Helpers
 {
   /// <summary>
   /// ProgramProperties acts as GUI wrapper for an IProgram instance to allow binding of Properties.
@@ -35,6 +37,7 @@ namespace MediaPortal.Plugins.SlimTvClient.Helpers
   {
     private DateTime _viewPortMinTime;
     private DateTime _viewPortMaxTime;
+    private bool _settingProgram = false;
     private static readonly double ProgramWidthFactor = 6.5;
 
     public AbstractProperty ProgramIdProperty { get; set; }
@@ -80,7 +83,7 @@ namespace MediaPortal.Plugins.SlimTvClient.Helpers
     public DateTime StartTime
     {
       get { return (DateTime)StartTimeProperty.GetValue(); }
-      set { StartTimeProperty.SetValue(value); UpdateDuration(); }
+      set { StartTimeProperty.SetValue(value); }
     }
 
     /// <summary>
@@ -89,7 +92,7 @@ namespace MediaPortal.Plugins.SlimTvClient.Helpers
     public DateTime EndTime
     {
       get { return (DateTime)EndTimeProperty.GetValue(); }
-      set { EndTimeProperty.SetValue(value); UpdateDuration(); }
+      set { EndTimeProperty.SetValue(value); }
     }
 
     /// <summary>
@@ -148,6 +151,19 @@ namespace MediaPortal.Plugins.SlimTvClient.Helpers
       EndTimeProperty = new WProperty(typeof(DateTime), DateTime.MinValue);
       RemainingDurationProperty = new WProperty(typeof(int), 0);
       ProgramWidthProperty = new WProperty(typeof(double), 0d);
+      Attach();
+    }
+
+    private void Attach ()
+    {
+      StartTimeProperty.Attach(TimeChanged);
+      EndTimeProperty.Attach(TimeChanged);
+    }
+
+    private void TimeChanged(AbstractProperty property, object oldvalue)
+    {
+      if (!_settingProgram)
+        UpdateDuration();
     }
 
     public void SetProgram(IProgram program)
@@ -155,16 +171,32 @@ namespace MediaPortal.Plugins.SlimTvClient.Helpers
       IProgramRecordingStatus recordingStatus = program as IProgramRecordingStatus;
       if (recordingStatus != null)
         IsScheduled = recordingStatus.RecordingStatus != RecordingStatus.None;
-
-      if (program != null)
+      try
       {
-        ProgramId = program.ProgramId;
-        Title = program.Title;
-        Description = program.Description;
-        StartTime = program.StartTime;
-        EndTime = program.EndTime;
-        Genre = program.Genre;
+        _settingProgram = true;
+        if (program != null)
+        {
+          ProgramId = program.ProgramId;
+          Title = program.Title;
+          Description = program.Description;
+          StartTime = program.StartTime;
+          EndTime = program.EndTime;
+          Genre = program.Genre;
+        }
+        else
+        {
+          ProgramId = 0;
+          Title = string.Empty;
+          Description = string.Empty;
+          StartTime = FormatHelper.GetDay(DateTime.Now);
+          EndTime = StartTime.AddDays(1);
+          Genre = string.Empty;
+        }
         UpdateDuration();
+      }
+      finally
+      {
+        _settingProgram = false;
       }
     }
 

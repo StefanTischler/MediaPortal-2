@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -36,7 +36,7 @@ namespace MediaPortal.UiComponents.BackgroundManager.Models
 
     public const string BGM_MODEL_ID_STR = "1F4CAEDE-7108-483d-B5C8-18BEC7EC58E5";
     public static Guid BGM_MODEL_ID = new Guid(BGM_MODEL_ID_STR);
-    protected const string ITEM_ACTION_KEY = "MenuModel: Item-Action";
+    public const string ITEM_ACTION_KEY = "MenuModel: Item-Action";
 
     private readonly string[] _allowedImageExtensions = new string[] { ".jpg", ".png" };
     private const string DEFAULT_BACKGROUND = "defaultBackground.jpg";
@@ -48,9 +48,9 @@ namespace MediaPortal.UiComponents.BackgroundManager.Models
 
     public BackgroundManagerModel()
     {
-      _selectedItemProperty = new SProperty(typeof (ListItem), null);
+      _selectedItemProperty = new WProperty(typeof (ListItem), null);
       _selectedItemProperty.Attach(SetBackgroundImage);
-      _backgroundImageProperty = new SProperty(typeof (string), string.Empty);
+      _backgroundImageProperty = new WProperty(typeof (string), string.Empty);
       SetBackgroundImage();
     }
 
@@ -119,7 +119,6 @@ namespace MediaPortal.UiComponents.BackgroundManager.Models
 
       string defaultFilePath = SkinContext.SkinResources.GetResourceFilePath(string.Format("{0}\\{1}", SkinResources.IMAGES_DIRECTORY, DEFAULT_BACKGROUND));
       BackgroundImage = String.IsNullOrEmpty(defaultFilePath) ? null : DEFAULT_BACKGROUND;
-      return;
     }
   }
 }

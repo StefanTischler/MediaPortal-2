@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -318,7 +318,6 @@ namespace UPnP.Infrastructure.CP.GENA
         service.InvokeEventSubscriptionFailed(new UPnPError(response == null ? 503 : (uint) response.StatusCode, "Cannot complete event subscription"));
         if (response != null)
           response.Close();
-        return;
       }
     }
 

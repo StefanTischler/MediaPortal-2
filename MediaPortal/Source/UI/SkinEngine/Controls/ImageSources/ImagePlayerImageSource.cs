@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -109,14 +109,14 @@ namespace MediaPortal.UI.SkinEngine.Controls.ImageSources
 
     public override void Allocate()
     {
-      IPlayerManager playerManager = ServiceRegistration.Get<IPlayerManager>(false);
-      if (playerManager == null)
+      IPlayerContextManager playerContextManager = ServiceRegistration.Get<IPlayerContextManager>(false);
+      if (playerContextManager == null)
       {
         FreeData();
         return;
       }
 
-      ISlimDXImagePlayer player = playerManager[Stream] as ISlimDXImagePlayer;
+      ISlimDXImagePlayer player = playerContextManager[Stream] as ISlimDXImagePlayer;
       if (player == null) 
       {
         FreeData();

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -38,7 +38,7 @@ namespace MediaPortal.Common.General
     #region Protected fields and events
 
     protected object _syncObj = new object();
-    protected object _value;
+    protected volatile object _value;
     protected Type _type;
 
     #endregion

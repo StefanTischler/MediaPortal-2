@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -35,6 +35,12 @@ namespace MediaPortal.UI.SkinEngine.ContentManagement
   public class AssetWrapper<T> : IAsset where T : IAssetCore
   {
     protected T _assetCore;
+
+    public event AssetAllocationHandler AllocationChanged
+    {
+      add { _assetCore.AllocationChanged += value; }
+      remove { _assetCore.AllocationChanged -= value; }
+    }
 
     public AssetWrapper(T assetCore)
     {

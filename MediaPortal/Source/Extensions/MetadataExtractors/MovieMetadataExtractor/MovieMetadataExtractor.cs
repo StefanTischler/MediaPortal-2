@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -38,7 +38,7 @@ using MediaPortal.Extensions.OnlineLibraries.TheMovieDB;
 namespace MediaPortal.Extensions.MetadataExtractors.MovieMetadataExtractor
 {
   /// <summary>
-  /// MediaPortal 2 metadata extractor implementation for Series.
+  /// MediaPortal 2 metadata extractor implementation for Movies.
   /// </summary>
   public class MovieMetadataExtractor : IMetadataExtractor
   {
@@ -103,8 +103,10 @@ namespace MediaPortal.Extensions.MetadataExtractors.MovieMetadataExtractor
         if (forceQuickMode)
           return false;
 
-        using (IResourceAccessor ra = mediaItemAccessor.Clone())
-        using (ILocalFsResourceAccessor lfsra = StreamedResourceToLocalFsAccessBridge.GetLocalFsResourceAccessor(ra))
+        if (!(mediaItemAccessor is IFileSystemResourceAccessor))
+          return false;
+        using (IFileSystemResourceAccessor fsra = (IFileSystemResourceAccessor) mediaItemAccessor.Clone())
+        using (ILocalFsResourceAccessor lfsra = StreamedResourceToLocalFsAccessBridge.GetLocalFsResourceAccessor(fsra))
           return ExtractMovieData(lfsra, extractedAspectData);
       }
       catch (Exception e)

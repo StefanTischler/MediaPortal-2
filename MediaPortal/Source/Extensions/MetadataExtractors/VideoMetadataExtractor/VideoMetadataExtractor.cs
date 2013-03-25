@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -59,6 +59,11 @@ namespace MediaPortal.Extensions.MetadataExtractors.VideoMetadataExtractor
     /// </summary>
     public static Guid METADATAEXTRACTOR_ID = new Guid(METADATAEXTRACTOR_ID_STR);
 
+    /// <summary>
+    /// Default mimetype is being used if actual mimetype detection fails.
+    /// </summary>
+    private const string DEFAULT_MIMETYPE = "video/unknown";
+
     #endregion
 
     #region Protected fields and classes
@@ -115,7 +120,7 @@ namespace MediaPortal.Extensions.MetadataExtractors.VideoMetadataExtractor
       return VIDEO_FILE_EXTENSIONS.Contains(ext);
     }
 
-    protected MediaInfoWrapper ReadMediaInfo(IResourceAccessor mediaItemAccessor)
+    protected MediaInfoWrapper ReadMediaInfo(IFileSystemResourceAccessor mediaItemAccessor)
     {
       MediaInfoWrapper result = new MediaInfoWrapper();
       Stream stream = null;
@@ -240,7 +245,6 @@ namespace MediaPortal.Extensions.MetadataExtractors.VideoMetadataExtractor
         MediaItemAspect.SetAttribute(extractedAspectData, VideoAspect.ATTR_AUDIOENCODING, StringUtils.Join(", ", _audCodecs));
 
         MediaItemAspect.SetCollectionAttribute(extractedAspectData, VideoAspect.ATTR_AUDIOLANGUAGES, _audioLanguages);
-        // TODO: extract cover art (see Mantis #1977)
       }
 
       public bool IsDVD
@@ -272,11 +276,10 @@ namespace MediaPortal.Extensions.MetadataExtractors.VideoMetadataExtractor
         IList<string> tags = tagsToExtract[MatroskaConsts.TAG_SIMPLE_TITLE];
         if (tags != null)
           title = tags.FirstOrDefault();
-
-        int year;
         if (!string.IsNullOrEmpty(title))
           MediaItemAspect.SetAttribute(extractedAspectData, MediaAspect.ATTR_TITLE, title);
 
+        int year;
         string yearCandidate = null;
         tags = tagsToExtract[MatroskaConsts.TAG_EPISODE_YEAR] ?? tagsToExtract[MatroskaConsts.TAG_SEASON_YEAR];
         if (tags != null)
@@ -301,19 +304,34 @@ namespace MediaPortal.Extensions.MetadataExtractors.VideoMetadataExtractor
         if (actors != null)
           MediaItemAspect.SetCollectionAttribute(extractedAspectData, VideoAspect.ATTR_ACTORS, actors);
       }
+    }
 
-      // Movie handling
-      //if (!string.IsNullOrEmpty(title) && !forceQuickMode)
-      //{
-      //  // TODO: online information can overwrite information read out of mkv tags, how to handle this?
-      //  MovieInfo movieInfo = new MovieInfo
-      //  {
-      //    MovieName = title,
-      //    Year = year
-      //  };
-      //  if (MovieTheMovieDbMatcher.Instance.FindAndUpdateMovie(movieInfo))
-      //    movieInfo.SetMetadata(extractedAspectData);
-      //}
+    protected void ExtractMp4Tags(string localFsResourcePath, IDictionary<Guid, MediaItemAspect> extractedAspectData, bool forceQuickMode)
+    {
+      string extensionUpper = StringUtils.TrimToEmpty(Path.GetExtension(localFsResourcePath)).ToUpper();
+
+      // Try to get extended information out of MP4 files)
+      if (extensionUpper != ".MP4") return;
+
+      TagLib.File mp4File = TagLib.File.Create(localFsResourcePath);
+      if (ReferenceEquals(mp4File, null) || ReferenceEquals(mp4File.Tag, null))
+        return;
+
+      TagLib.Tag tag = mp4File.Tag;
+
+      string title = tag.Title;
+      if (!string.IsNullOrEmpty(title))
+        MediaItemAspect.SetAttribute(extractedAspectData, MediaAspect.ATTR_TITLE, title);
+
+      int year = (int) tag.Year;
+      if (year != 0)
+        MediaItemAspect.SetAttribute(extractedAspectData, MediaAspect.ATTR_RECORDINGTIME, new DateTime(year, 1, 1));
+
+      if (!ReferenceEquals(tag.Genres, null) && tag.Genres.Length > 0)
+        MediaItemAspect.SetCollectionAttribute(extractedAspectData, VideoAspect.ATTR_GENRES, tag.Genres);
+
+      if (!ReferenceEquals(tag.Performers, null) && tag.Performers.Length > 0)
+        MediaItemAspect.SetCollectionAttribute(extractedAspectData, VideoAspect.ATTR_ACTORS, tag.Performers);
     }
 
     protected void ExtractThumbnailData(string localFsResourcePath, IDictionary<Guid, MediaItemAspect> extractedAspectData, bool forceQuickMode)
@@ -346,7 +364,9 @@ namespace MediaPortal.Extensions.MetadataExtractors.VideoMetadataExtractor
       {
         VideoResult result = null;
         IFileSystemResourceAccessor fsra = mediaItemAccessor as IFileSystemResourceAccessor;
-        if (fsra != null && fsra.IsDirectory && fsra.ResourceExists("VIDEO_TS"))
+        if (fsra == null)
+          return false;
+        if (!fsra.IsFile && fsra.ResourceExists("VIDEO_TS"))
         {
           IFileSystemResourceAccessor fsraVideoTs = fsra.GetResource("VIDEO_TS");
           if (fsraVideoTs != null && fsraVideoTs.ResourceExists("VIDEO_TS.IFO"))
@@ -376,22 +396,22 @@ namespace MediaPortal.Extensions.MetadataExtractors.VideoMetadataExtractor
               }
           }
         }
-        else if (mediaItemAccessor.IsFile)
+        else if (fsra.IsFile)
         {
-          string filePath = mediaItemAccessor.ResourcePathName;
+          string filePath = fsra.ResourcePathName;
           if (!HasVideoExtension(filePath))
             return false;
-          using (MediaInfoWrapper fileInfo = ReadMediaInfo(mediaItemAccessor))
+          using (MediaInfoWrapper fileInfo = ReadMediaInfo(fsra))
           {
             // Before we start evaluating the file, check if it is a video at all
             if (!fileInfo.IsValid || (fileInfo.GetVideoCount() == 0 && !IsWorkaroundRequired(filePath)))
               return false;
 
-            string mediaTitle = DosPathHelper.GetFileNameWithoutExtension(mediaItemAccessor.ResourceName);
+            string mediaTitle = DosPathHelper.GetFileNameWithoutExtension(fsra.ResourceName);
             result = VideoResult.CreateFileInfo(mediaTitle, fileInfo);
           }
-          using (Stream stream = mediaItemAccessor.OpenRead())
-            result.MimeType = MimeTypeDetector.GetMimeType(stream);
+          using (Stream stream = fsra.OpenRead())
+            result.MimeType = MimeTypeDetector.GetMimeType(stream, DEFAULT_MIMETYPE);
         }
         if (result != null)
         {
@@ -400,24 +420,25 @@ namespace MediaPortal.Extensions.MetadataExtractors.VideoMetadataExtractor
           ILocalFsResourceAccessor disposeLfsra = null;
           try
           {
-            ILocalFsResourceAccessor lfsra = mediaItemAccessor as ILocalFsResourceAccessor;
+            ILocalFsResourceAccessor lfsra = fsra as ILocalFsResourceAccessor;
             if (lfsra == null && !forceQuickMode)
             { // In case forceQuickMode, we only want local browsing
-              IResourceAccessor ra = mediaItemAccessor.Clone();
+              IFileSystemResourceAccessor localFsra = (IFileSystemResourceAccessor) fsra.Clone();
               try
               {
-                lfsra = StreamedResourceToLocalFsAccessBridge.GetLocalFsResourceAccessor(ra);
+                lfsra = StreamedResourceToLocalFsAccessBridge.GetLocalFsResourceAccessor(localFsra);
                 disposeLfsra = lfsra; // Remember to dispose the extra resource accessor instance
               }
               catch (Exception)
               {
-                ra.Dispose();
+                localFsra.Dispose();
               }
             }
             if (lfsra != null)
             {
               string localFsPath = lfsra.LocalFileSystemPath;
               ExtractMatroskaTags(localFsPath, extractedAspectData, forceQuickMode);
+              ExtractMp4Tags(localFsPath, extractedAspectData, forceQuickMode);
               ExtractThumbnailData(localFsPath, extractedAspectData, forceQuickMode);
             }
           }
@@ -447,58 +468,6 @@ namespace MediaPortal.Extensions.MetadataExtractors.VideoMetadataExtractor
     {
       return filePath.ToLowerInvariant().EndsWith(".wtv");
     }
-
-    // The following code should be used in the slow batch mode (see Mantis #1977)
-    //#region code testing the xbmc scraper
-    //if (scraper.IsLoaded)
-    //{
-    //  scraper.CreateSearchUrl((string)movie["title"]);
-    //  ServiceRegistration.Get<ILogger>().Info("MovieImporter: Getting online info from: {0} ", scraper.SearchUrl);
-    //  scraper.GetSearchResults();
-    //  ServiceRegistration.Get<ILogger>().Info("MovieImporter: Result found {0} ", scraper.SearchResults.Count);
-    //  if (scraper.SearchResults.Count > 0)
-    //  {
-
-    //    SystemMessage msgc = new SystemMessage();
-    //    msgc.MessageData["action"] = "imdbchoiceneeded";
-    //    msgc.MessageData["file"] = filePath;
-    //    msgc.MessageData["title"] = (string)movie["title"];
-    //    List<string> urlList = new List<string>();
-    //    List<string> idList = new List<string>();
-    //    List<string> titleList = new List<string>();
-    //    foreach (ScraperSearchResult res in scraper.SearchResults)
-    //    {
-    //      urlList.Add(res.Url);
-    //      idList.Add(res.Id);
-    //      titleList.Add(res.Title);
-    //    }
-    //    msgc.MessageData["urls"] = urlList;
-    //    msgc.MessageData["ids"] = idList;
-    //    msgc.MessageData["titles"] = titleList;
-    //    SendMessage(msgc);
-
-    //    ServiceRegistration.Get<ILogger>().Info("MovieImporter: Getting online info for: {0}", scraper.SearchResults[0].Title);
-    //    scraper.GetDetails(scraper.SearchResults[0].Url, scraper.SearchResults[0].Id);
-    //    if (scraper.Metadata.ContainsKey("genre"))
-    //    {
-    //      movie["title"] = scraper.Metadata["title"];
-    //      movie["genre"] = scraper.Metadata["genre"];
-    //      if (scraper.Metadata.ContainsKey("thumb"))
-    //        movie["CoverArt"] = scraper.Metadata["thumb"];
-    //      if (scraper.Metadata.ContainsKey("actors"))
-    //        movie["actors"] = scraper.Metadata["actors"];
-    //      if (scraper.Metadata.ContainsKey("year"))
-    //        movie["year"] = scraper.Metadata["year"];
-
-    //    }
-    //  }
-    //}
-    //else
-    //{
-    //  ServiceRegistration.Get<ILogger>().Info("MovieImporter: No online scrapers are loaded ");
-    //}
-
-    //#endregion
 
     #endregion
   }

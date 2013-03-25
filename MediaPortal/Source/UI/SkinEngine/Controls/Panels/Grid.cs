@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -184,7 +184,7 @@ namespace MediaPortal.UI.SkinEngine.Controls.Panels
     /// <param name="targetObject">The object whose property value will
     /// be set.</param>
     /// <param name="value">Value of the <c>Row</c> property on the
-    /// <paramref name="targetObject"/> to be set.</returns>
+    /// <paramref name="targetObject"/> to be set.</param>
     public static void SetRow(DependencyObject targetObject, int value)
     {
       targetObject.SetAttachedPropertyValue<int>(ROW_ATTACHED_PROPERTY, value);
@@ -222,7 +222,7 @@ namespace MediaPortal.UI.SkinEngine.Controls.Panels
     /// <param name="targetObject">The object whose property value will
     /// be set.</param>
     /// <param name="value">Value of the <c>Column</c> property on the
-    /// <paramref name="targetObject"/> to be set.</returns>
+    /// <paramref name="targetObject"/> to be set.</param>
     public static void SetColumn(DependencyObject targetObject, int value)
     {
       targetObject.SetAttachedPropertyValue<int>(COLUMN_ATTACHED_PROPERTY, value);
@@ -260,7 +260,7 @@ namespace MediaPortal.UI.SkinEngine.Controls.Panels
     /// <param name="targetObject">The object whose property value will
     /// be set.</param>
     /// <param name="value">Value of the <c>RowSpan</c> property on the
-    /// <paramref name="targetObject"/> to be set.</returns>
+    /// <paramref name="targetObject"/> to be set.</param>
     public static void SetRowSpan(DependencyObject targetObject, int value)
     {
       targetObject.SetAttachedPropertyValue<int>(ROWSPAN_ATTACHED_PROPERTY, value);
@@ -298,7 +298,7 @@ namespace MediaPortal.UI.SkinEngine.Controls.Panels
     /// <param name="targetObject">The object whose property value will
     /// be set.</param>
     /// <param name="value">Value of the <c>ColumnSpan</c> property on the
-    /// <paramref name="targetObject"/> to be set.</returns>
+    /// <paramref name="targetObject"/> to be set.</param>
     public static void SetColumnSpan(DependencyObject targetObject, int value)
     {
       targetObject.SetAttachedPropertyValue<int>(COLUMNSPAN_ATTACHED_PROPERTY, value);

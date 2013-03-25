@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -268,6 +268,7 @@ namespace MediaPortal.Common.Messaging
     /// <remarks>
     /// This method requests its internal lock, so it must not be called while holding other locks, according to the
     /// MP2 multithreading guidelines.
+    /// A message queue which was terminated by this method may be restarted by calling <see cref="Start"/> again.
     /// </remarks>
     public void Terminate()
     {

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -313,6 +314,10 @@ namespace UPnP.Infrastructure.Dv
         {
           if (!NetworkHelper.HostNamesEqual(hostName, NetworkHelper.IPAddrToHostName(config.EndPointIPAddress)))
             continue;
+
+          // Common check for supported encodings
+          string acceptEncoding = request.Headers.Get("ACCEPT-ENCODING") ?? string.Empty;
+
           // Handle different HTTP methods here
           if (request.Method == "GET")
           { // GET of descriptions
@@ -335,7 +340,8 @@ namespace UPnP.Infrastructure.Dv
                 response.ContentType = "text/xml; charset=utf-8";
                 if (!string.IsNullOrEmpty(acceptLanguage))
                   response.AddHeader("CONTENT-LANGUAGE", culture.ToString());
-                response.Body = new MemoryStream(UPnPConsts.UTF8_NO_BOM.GetBytes(description));
+                using (MemoryStream responseStream = new MemoryStream(UPnPConsts.UTF8_NO_BOM.GetBytes(description)))
+                  CompressionHelper.WriteCompressedStream(acceptEncoding, response, responseStream);
                 SafeSendResponse(response);
                 return;
               }
@@ -384,11 +390,9 @@ namespace UPnP.Infrastructure.Dv
                 status = HttpStatusCode.InternalServerError;
               }
               response.Status = status;
-              StreamWriter s = new StreamWriter(response.Body, encoding);
-              s.Write(result);
-              s.Flush();
+              using (MemoryStream responseStream = new MemoryStream(encoding.GetBytes(result)))
+                CompressionHelper.WriteCompressedStream(acceptEncoding, response, responseStream);
               SafeSendResponse(response);
-              s.Close();
               return;
             }
           }
@@ -408,7 +412,6 @@ namespace UPnP.Infrastructure.Dv
         }
         // Url didn't match
         context.Respond(HttpHelper.HTTP11, HttpStatusCode.NotFound, null);
-        return;
       }
       catch (Exception e)
       {
@@ -416,7 +419,6 @@ namespace UPnP.Infrastructure.Dv
         IHttpResponse response = request.CreateResponse(context);
         response.Status = HttpStatusCode.InternalServerError;
         SafeSendResponse(response);
-        return;
       }
     }
 

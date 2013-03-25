@@ -1,7 +1,7 @@
-﻿#region Copyright (C) 2007-2012 Team MediaPortal
+﻿#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -38,6 +38,7 @@ using MediaPortal.Extensions.OnlineLibraries.Libraries.TvdbLib.Data.Banner;
 using MediaPortal.Extensions.OnlineLibraries.Matches;
 using MediaPortal.Extensions.OnlineLibraries.TheTvDB;
 using MediaPortal.Utilities;
+using MediaPortal.Utilities.Network;
 
 namespace MediaPortal.Extensions.OnlineLibraries
 {
@@ -230,13 +231,13 @@ namespace MediaPortal.Extensions.OnlineLibraries
                 };
 
             // Save cache
-            SaveNewMatch(seriesName, onlineMatch);
+            _storage.SaveNewMatch(seriesName, onlineMatch);
             return true;
           }
         }
         ServiceRegistration.Get<ILogger>().Debug("SeriesTvDbMatcher: No unique match found for \"{0}\"", seriesName);
         // Also save "non matches" to avoid retrying
-        SaveNewMatch(seriesName, new SeriesMatch { ItemName = seriesName });
+        _storage.SaveNewMatch(seriesName, new SeriesMatch { ItemName = seriesName });
         return false;
       }
       catch (Exception ex)
@@ -253,6 +254,9 @@ namespace MediaPortal.Extensions.OnlineLibraries
 
     protected override bool Init()
     {
+      if (!base.Init())
+        return false;
+
       if (_tv != null)
         return true;
       try
@@ -269,11 +273,6 @@ namespace MediaPortal.Extensions.OnlineLibraries
       {
         return false;
       }
-    }
-
-    protected override List<SeriesMatch> FindNameMatch(List<SeriesMatch> matches, string name)
-    {
-      return matches.FindAll(m => m.ItemName == name);
     }
 
     protected override void DownloadFanArt(int tvDbId)

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -117,7 +117,7 @@ namespace MediaPortal.Common.Services.ResourceAccess
       resourcePathName = (string) outParameters[2];
       resourceName = (string) outParameters[3];
       lastChanged = (DateTime) outParameters[4];
-      size = (long) (UInt64) outParameters[5];
+      size = (Int64) outParameters[5];
       return (bool) outParameters[6];
     }
 

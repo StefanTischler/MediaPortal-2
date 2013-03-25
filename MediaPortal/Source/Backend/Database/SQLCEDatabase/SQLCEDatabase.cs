@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -187,6 +187,16 @@ namespace MediaPortal.Database.SQLCE
         result.ParameterName = name;
         result.Value = value ?? DBNull.Value;
         result.SqlDbType = SqlDbType.Image;
+        command.Parameters.Add(result);
+        return result;
+      }
+      // We need to use NText as parameter type, if the value is of "IsCLOB" type.
+      if (type == typeof(string) && value != null && IsCLOB((uint) value.ToString().Length))
+      {
+        SqlCeParameter result = (SqlCeParameter) command.CreateParameter();
+        result.ParameterName = name;
+        result.Value = value;
+        result.SqlDbType = SqlDbType.NText;
         command.Parameters.Add(result);
         return result;
       }

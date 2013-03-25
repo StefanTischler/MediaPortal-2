@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using MediaPortal.Common;
@@ -32,14 +33,15 @@ using MediaPortal.Common.Localization;
 using MediaPortal.Common.Logging;
 using MediaPortal.Common.MediaManagement;
 using MediaPortal.Common.Settings;
-using MediaPortal.Plugins.SlimTvClient.Interfaces;
-using MediaPortal.Plugins.SlimTvClient.Interfaces.Items;
-using MediaPortal.Plugins.SlimTvClient.Interfaces.ResourceProvider;
-using MediaPortal.Plugins.SlimTvClient.Providers.Items;
-using MediaPortal.Plugins.SlimTvClient.Providers.Settings;
+using MediaPortal.Plugins.SlimTv.Interfaces;
+using MediaPortal.Plugins.SlimTv.Interfaces.Items;
+using MediaPortal.Plugins.SlimTv.Interfaces.LiveTvMediaItem;
+using MediaPortal.Plugins.SlimTv.Interfaces.ResourceProvider;
+using MediaPortal.Plugins.SlimTv.Providers.Items;
+using MediaPortal.Plugins.SlimTv.Providers.Settings;
 using MediaPortal.UI.Presentation.UiNotifications;
 using MPExtended.Services.TVAccessService.Interfaces;
-using IChannel = MediaPortal.Plugins.SlimTvClient.Interfaces.Items.IChannel;
+using IChannel = MediaPortal.Plugins.SlimTv.Interfaces.Items.IChannel;
 
 namespace MediaPortal.Plugins.SlimTv.Providers
 {
@@ -83,6 +85,7 @@ namespace MediaPortal.Plugins.SlimTv.Providers
             basicBinding.Security.Mode = BasicHttpSecurityMode.TransportCredentialOnly;
             basicBinding.Security.Transport.ClientCredentialType = HttpClientCredentialType.Basic;
           }
+          basicBinding.ReaderQuotas.MaxStringContentLength = 5*1024*1024; // 5 MB
           binding = basicBinding;
         }
         binding.OpenTimeout = TimeSpan.FromSeconds(5);
@@ -124,7 +127,7 @@ namespace MediaPortal.Plugins.SlimTv.Providers
 
     public string Name
     {
-      get { return "TV4Home Provider"; }
+      get { return "MPExtended Provider"; }
     }
 
     #endregion
@@ -377,7 +380,7 @@ namespace MediaPortal.Plugins.SlimTv.Providers
         IList<WebChannelBasic> tvChannels = TvServer(indexGroup.ServerIndex).GetChannelsBasic(group.ChannelGroupId);
         foreach (WebChannelBasic webChannel in tvChannels)
         {
-          channels.Add(new Channel { ChannelId = webChannel.Id, Name = webChannel.DisplayName, ServerIndex = indexGroup.ServerIndex });
+          channels.Add(new Channel { ChannelId = webChannel.Id, Name = webChannel.Title, ServerIndex = indexGroup.ServerIndex });
         }
         return true;
       }
@@ -403,7 +406,7 @@ namespace MediaPortal.Plugins.SlimTv.Providers
         WebChannelBasic tvChannel = TvServer(indexProgram.ServerIndex).GetChannelBasicById(indexProgram.ChannelId);
         if (tvChannel != null)
         {
-          channel = new Channel { ChannelId = tvChannel.Id, Name = tvChannel.DisplayName, ServerIndex = indexProgram.ServerIndex };
+          channel = new Channel { ChannelId = tvChannel.Id, Name = tvChannel.Title, ServerIndex = indexProgram.ServerIndex };
           return true;
         }
       }
@@ -412,6 +415,17 @@ namespace MediaPortal.Plugins.SlimTv.Providers
         ServiceRegistration.Get<ILogger>().Error(ex.Message);
       }
       return false;
+    }
+
+    /// <summary>
+    /// Gets a program by its <see cref="IProgram.ProgramId"/>.
+    /// </summary>
+    /// <param name="programId">Program ID.</param>
+    /// <param name="program">Program.</param>
+    /// <returns>True if succeeded.</returns>
+    public bool GetProgram (int programId, out IProgram program)
+    {
+      throw new NotImplementedException();
     }
 
     #endregion
@@ -497,6 +511,41 @@ namespace MediaPortal.Plugins.SlimTv.Providers
       return false;
     }
 
+    /// <summary>
+    /// Tries to get the current and next program for the given <paramref name="channel"/>.
+    /// </summary>
+    /// <param name="channel">Channel</param>
+    /// <param name="programNow">Returns current program</param>
+    /// <param name="programNext">Returns next program</param>
+    /// <returns><c>true</c> if a program could be found</returns>
+    public bool GetNowNextProgram (IChannel channel, out IProgram programNow, out IProgram programNext)
+    {
+      // TODO: caching from NativeProvider?
+      programNow = null;
+      programNext = null;
+      Channel indexChannel = channel as Channel;
+      if (indexChannel == null)
+        return false;
+
+      if (!CheckConnection(indexChannel.ServerIndex))
+        return false;
+
+      try
+      {
+        IList<WebProgramDetailed> tvPrograms = TvServer(indexChannel.ServerIndex).GetNowNextWebProgramDetailedForChannel(channel.ChannelId);
+        if (tvPrograms.Count > 0 && tvPrograms[0] != null)
+          programNow = new Program(tvPrograms[0], indexChannel.ServerIndex);
+        if (tvPrograms.Count > 1 && tvPrograms[1] != null)
+          programNext = new Program(tvPrograms[1], indexChannel.ServerIndex);
+      }
+      catch (Exception ex)
+      {
+        ServiceRegistration.Get<ILogger>().Error(ex.Message);
+        return false;
+      }
+      return programNow != null;
+    }
+
     public bool GetPrograms(IChannel channel, DateTime from, DateTime to, out IList<IProgram> programs)
     {
       programs = null;
@@ -513,6 +562,39 @@ namespace MediaPortal.Plugins.SlimTv.Providers
         IList<WebProgramDetailed> tvPrograms = TvServer(indexChannel.ServerIndex).GetProgramsDetailedForChannel(channel.ChannelId, from, to);
         foreach (WebProgramDetailed webProgram in tvPrograms)
           programs.Add(new Program(webProgram, indexChannel.ServerIndex));
+      }
+      catch (Exception ex)
+      {
+        ServiceRegistration.Get<ILogger>().Error(ex.Message);
+        return false;
+      }
+      return programs.Count > 0;
+    }
+
+    /// <summary>
+    /// Tries to get a list of programs for all channels of the given <paramref name="channelGroup"/> and time range.
+    /// </summary>
+    /// <param name="channelGroup">Channel group</param>
+    /// <param name="from">Time from</param>
+    /// <param name="to">Time to</param>
+    /// <param name="programs">Returns programs</param>
+    /// <returns><c>true</c> if at least one program could be found</returns>
+    public bool GetProgramsGroup (IChannelGroup channelGroup, DateTime @from, DateTime to, out IList<IProgram> programs)
+    {
+      programs = null;
+      ChannelGroup indexGroup = channelGroup as ChannelGroup;
+      if (indexGroup == null)
+        return false;
+
+      if (!CheckConnection(indexGroup.ServerIndex))
+        return false;
+
+      programs = new List<IProgram>();
+      try
+      {
+        IList<WebChannelPrograms<WebProgramDetailed>> tvPrograms = TvServer(indexGroup.ServerIndex).GetProgramsDetailedForGroup(channelGroup.ChannelGroupId, from, to);
+        foreach (WebProgramDetailed webProgramDetailed in tvPrograms.SelectMany(webPrograms => webPrograms.Programs))
+          programs.Add(new Program(webProgramDetailed, indexGroup.ServerIndex));
       }
       catch (Exception ex)
       {
@@ -545,17 +627,15 @@ namespace MediaPortal.Plugins.SlimTv.Providers
       if (!CheckConnection(indexProgram.ServerIndex))
         return false;
 
-      WebResult result;
       try
       {
-        result = TvServer(indexProgram.ServerIndex).AddSchedule(program.ChannelId, program.Title, program.StartTime,
+        return TvServer(indexProgram.ServerIndex).AddSchedule(program.ChannelId, program.Title, program.StartTime,
                                                        program.EndTime, WebScheduleType.Once);
       }
       catch
       {
         return false;
       }
-      return result.Result;
     }
 
     public bool RemoveSchedule(IProgram program)
@@ -567,16 +647,14 @@ namespace MediaPortal.Plugins.SlimTv.Providers
       if (!CheckConnection(indexProgram.ServerIndex))
         return false;
 
-      WebResult result;
       try
       {
-        result = TvServer(indexProgram.ServerIndex).CancelSchedule(program.ProgramId);
+        return TvServer(indexProgram.ServerIndex).CancelSchedule(program.ProgramId);
       }
       catch
       {
         return false;
       }
-      return result.Result;
     }
     
     public bool GetRecordingStatus(IProgram program, out RecordingStatus recordingStatus)

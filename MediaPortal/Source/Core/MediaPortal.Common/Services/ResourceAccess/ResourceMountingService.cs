@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -165,7 +165,7 @@ namespace MediaPortal.Common.Services.ResourceAccess
       }
     }
 
-    public ICollection<IResourceAccessor> GetResources(string rootDirectoryName)
+    public ICollection<IFileSystemResourceAccessor> GetResources(string rootDirectoryName)
     {
       lock (_syncObj)
       {
@@ -178,7 +178,7 @@ namespace MediaPortal.Common.Services.ResourceAccess
       }
     }
 
-    public string AddResource(string rootDirectoryName, IResourceAccessor resourceAccessor)
+    public string AddResource(string rootDirectoryName, IFileSystemResourceAccessor resourceAccessor)
     {
       lock (_syncObj)
       {
@@ -188,16 +188,15 @@ namespace MediaPortal.Common.Services.ResourceAccess
         if (rootDirectory == null)
           return null;
         string resourceName = resourceAccessor.ResourceName;
-        IFileSystemResourceAccessor fsra = resourceAccessor as IFileSystemResourceAccessor;
-        rootDirectory.AddResource(resourceName, fsra != null && fsra.IsDirectory ?
-            (VirtualFileSystemResource) new VirtualDirectory(resourceName, fsra) :
+        rootDirectory.AddResource(resourceName, !resourceAccessor.IsFile?
+            (VirtualFileSystemResource) new VirtualDirectory(resourceName, resourceAccessor) :
             new VirtualFile(resourceName, resourceAccessor));
         char driveLetter = _dokanExecutor.DriveLetter;
         return Path.Combine(driveLetter + ":\\", rootDirectoryName + "\\" + resourceName);
       }
     }
 
-    public void RemoveResource(string rootDirectoryName, IResourceAccessor resourceAccessor)
+    public void RemoveResource(string rootDirectoryName, IFileSystemResourceAccessor resourceAccessor)
     {
       lock (_syncObj)
       {

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -39,12 +39,12 @@ namespace MediaPortal.Extensions.ResourceProviders.ZipResourceProvider
     protected ZipFile _zipFile;
     protected string _key;
     protected int _usageCount = 0;
-    protected IResourceAccessor _zipFileResourceAccessor;
+    protected IFileSystemResourceAccessor _zipFileResourceAccessor;
     protected Stream _zipFileStream;
     protected IDictionary<string, string> _tempFilePaths = new Dictionary<string, string>(); // ZipEntry names to temp file paths
     protected object _syncObj = new object();
 
-    public ZipResourceProxy(string key, IResourceAccessor zipFileAccessor)
+    public ZipResourceProxy(string key, IFileSystemResourceAccessor zipFileAccessor)
     {
       _key = key;
       _zipFileResourceAccessor = zipFileAccessor;

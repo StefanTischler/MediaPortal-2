@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -183,7 +183,7 @@ namespace MediaPortal.Extensions.ResourceProviders.ZipResourceProvider
 
     #endregion
 
-    #region IResourceAccessor implementation
+    #region IFileSystemResourceAccessor implementation
 
     public IResourceProvider ParentProvider
     {
@@ -263,15 +263,6 @@ namespace MediaPortal.Extensions.ResourceProviders.ZipResourceProvider
       return null;
     }
 
-    public IResourceAccessor Clone()
-    {
-      return new ZipResourceAccessor(_zipProvider, _zipProxy, _pathToDirOrFile);
-    }
-
-    #endregion
-
-    #region IFileSystemResourceAccessor implementation
-
     public bool ResourceExists(string path)
     {
       return path.Equals(_pathToDirOrFile) || IsResource(_zipProxy.ZipFile, ToEntryPath(ExpandPath(path)));
@@ -317,6 +308,11 @@ namespace MediaPortal.Extensions.ResourceProviders.ZipResourceProvider
         ServiceRegistration.Get<ILogger>().Warn("ZipResourceAccessor: Error reading child directories of '{0}'", e, CanonicalLocalResourcePath);
         return null;
       }
+    }
+
+    public IResourceAccessor Clone()
+    {
+      return new ZipResourceAccessor(_zipProvider, _zipProxy, _pathToDirOrFile);
     }
 
     #endregion

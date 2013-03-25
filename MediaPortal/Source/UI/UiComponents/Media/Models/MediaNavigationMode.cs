@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -27,14 +27,14 @@ namespace MediaPortal.UiComponents.Media.Models
   /// <summary>
   /// Represents different parts of the media library/system which can be navigated by the media model.
   /// </summary>
-  public enum MediaNavigationMode
+  public static class MediaNavigationMode
   {
-    BrowseLocalMedia,
-    BrowseMediaLibrary,
-    Audio,
-    Videos,
-    Images,
-    Series,
-    Movies
+    public const string BrowseLocalMedia = "BrowseLocalMedia";
+    public const string BrowseMediaLibrary = "BrowseMediaLibrary";
+    public const string Audio = "Audio";
+    public const string Videos = "Videos";
+    public const string Images = "Images";
+    public const string Series = "Series";
+    public const string Movies = "Movies";
   }
 }

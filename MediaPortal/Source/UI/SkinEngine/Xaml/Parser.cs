@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -327,11 +327,8 @@ namespace MediaPortal.UI.SkinEngine.Xaml
             _elementContextStack.RegisterNamespaceHandler(importNamespaceURI, handler);
           }
           else
-          {
             // Store other attributes so we don't need to sort out the namespace declarations in step 3
             remainingAttributes.Add(attr);
-            continue;
-          }
         }
 
         // Step 2: Instantiate the element

@@ -1,23 +1,23 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
- 
-    This file is part of MediaPortal II
 
-    MediaPortal II is free software: you can redistribute it and/or modify
+    This file is part of MediaPortal 2
+
+    MediaPortal 2 is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    MediaPortal II is distributed in the hope that it will be useful,
+    MediaPortal 2 is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with MediaPortal II.  If not, see <http://www.gnu.org/licenses/>.
+    along with MediaPortal 2. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #endregion
@@ -100,46 +100,40 @@ namespace MediaPortal.Media.MetadataExtractors
     {
       try
       {
-        IResourceAccessor ra = mediaItemAccessor.Clone();
-        try
-        {
-          using (ILocalFsResourceAccessor fsra = StreamedResourceToLocalFsAccessBridge.GetLocalFsResourceAccessor(ra))
-            if (fsra != null && fsra.IsDirectory && fsra.ResourceExists("BDMV"))
+        if (!(mediaItemAccessor is IFileSystemResourceAccessor))
+          return false;
+        using (IFileSystemResourceAccessor fsra = (IFileSystemResourceAccessor) mediaItemAccessor.Clone())
+        using (ILocalFsResourceAccessor lfsra = StreamedResourceToLocalFsAccessBridge.GetLocalFsResourceAccessor(fsra))
+          if (!lfsra.IsFile && lfsra.ResourceExists("BDMV"))
+          {
+            IFileSystemResourceAccessor fsraBDMV = lfsra.GetResource("BDMV");
+            if (fsraBDMV != null && fsraBDMV.ResourceExists("index.bdmv"))
             {
-              IFileSystemResourceAccessor fsraBDMV = fsra.GetResource("BDMV");
-              if (fsraBDMV != null && fsraBDMV.ResourceExists("index.bdmv"))
+              // This line is important to keep in, if no VideoAspect is created here, the MediaItems is not detected as Video! 
+              MediaItemAspect.GetOrCreateAspect(extractedAspectData, VideoAspect.Metadata);
+              MediaItemAspect mediaAspect = MediaItemAspect.GetOrCreateAspect(extractedAspectData, MediaAspect.Metadata);
+
+              mediaAspect.SetAttribute(MediaAspect.ATTR_MIME_TYPE, "video/bluray"); // BluRay disc
+
+              string bdmvDirectory = lfsra.LocalFileSystemPath;
+              BDInfoExt bdinfo = new BDInfoExt(bdmvDirectory);
+              string title = bdinfo.GetTitle();
+              mediaAspect.SetAttribute(MediaAspect.ATTR_TITLE, title ?? mediaItemAccessor.ResourceName);
+
+              // Check for BD disc thumbs
+              FileInfo thumbnail = bdinfo.GetBiggestThumb();
+              if (thumbnail != null)
               {
-                // This line is important to keep in, if no VideoAspect is created here, the MediaItems is not detected as Video! 
-                MediaItemAspect.GetOrCreateAspect(extractedAspectData, VideoAspect.Metadata);
-                MediaItemAspect mediaAspect = MediaItemAspect.GetOrCreateAspect(extractedAspectData, MediaAspect.Metadata);
+                byte[] binary = new byte[thumbnail.Length];
+                using (FileStream fileStream = new FileStream(thumbnail.FullName, FileMode.Open, FileAccess.Read))
+                using (BinaryReader binaryReader = new BinaryReader(fileStream))
+                  binaryReader.Read(binary, 0, binary.Length);
 
-                mediaAspect.SetAttribute(MediaAspect.ATTR_MIME_TYPE, "video/bluray"); // BluRay disc
-
-                string bdmvDirectory = fsra.LocalFileSystemPath;
-                BDInfoExt bdinfo = new BDInfoExt(bdmvDirectory);
-                string title = bdinfo.GetTitle();
-                mediaAspect.SetAttribute(MediaAspect.ATTR_TITLE, title ?? mediaItemAccessor.ResourceName);
-
-                // Check for BD disc thumbs
-                FileInfo thumbnail = bdinfo.GetBiggestThumb();
-                if (thumbnail != null)
-                {
-                  byte[] binary = new byte[thumbnail.Length];
-                  using (FileStream fileStream = new FileStream(thumbnail.FullName, FileMode.Open, FileAccess.Read))
-                  using (BinaryReader binaryReader = new BinaryReader(fileStream))
-                    binaryReader.Read(binary, 0, binary.Length);
-
-                  MediaItemAspect.SetAttribute(extractedAspectData, ThumbnailLargeAspect.ATTR_THUMBNAIL, binary);
-                }
-                return true;
+                MediaItemAspect.SetAttribute(extractedAspectData, ThumbnailLargeAspect.ATTR_THUMBNAIL, binary);
               }
+              return true;
             }
-        }
-        catch
-        {
-          ra.Dispose();
-          throw;
-        }
+          }
         return false;
       }
       catch

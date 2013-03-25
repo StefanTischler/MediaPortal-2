@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -29,6 +29,9 @@ namespace MediaPortal.UI.Presentation.Players
   /// <summary>
   /// Interface for communicating the current player state to the player manager.
   /// </summary>
+  /// <remarks>
+  /// Each player which should be run by the <see cref="IPlayerManager"/> must implement this interface.
+  /// </remarks>
   public interface IPlayerEvents
   {
     /// <summary>

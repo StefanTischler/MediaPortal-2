@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace MediaPortal.Utilities.FileSystem
 {
@@ -174,6 +175,69 @@ namespace MediaPortal.Utilities.FileSystem
       string directory = Path.GetTempPath() + Guid.NewGuid().ToString("D");
       Directory.CreateDirectory(directory);
       return directory  + "\\" + fileName;
+    }
+
+    /// <summary>
+    /// Read the complete binary content of the given <paramref name="filename"/> into a byte[].
+    /// </summary>
+    /// <param name="filename">Filename</param>
+    /// <returns>Content</returns>
+    public static byte[] ReadFile(string filename)
+    {
+      FileInfo thumbnail = new FileInfo(filename);
+      byte[] binary = new byte[thumbnail.Length];
+      using (FileStream fileStream = new FileStream(thumbnail.FullName, FileMode.Open, FileAccess.Read))
+      using (BinaryReader binaryReader = new BinaryReader(fileStream))
+        binaryReader.Read(binary, 0, binary.Length);
+      return binary;
+    }
+
+    /// <summary>
+    /// Builds a full path for a given <paramref name="fileName"/> that is located in the same folder as the <see cref="Assembly.GetCallingAssembly"/>.
+    /// </summary>
+    /// <param name="fileName">File name</param>
+    /// <returns>Combined path</returns>
+    public static string BuildAssemblyRelativePath(string fileName)
+    {
+      string executingPath = Assembly.GetCallingAssembly().Location;
+      return Path.Combine(Path.GetDirectoryName(executingPath), fileName);
+    }
+
+    /// <summary>
+    /// Builds a full path for a given <paramref name="fileName"/> that is located in the same folder as the <see cref="Assembly.GetExecutingAssembly"/>.
+    /// </summary>
+    /// <param name="fileName">File name</param>
+    /// <returns>Combined path</returns>
+    public static string BuildExecutingAssemblyRelativePath(string fileName)
+    {
+      string executingPath = Assembly.GetExecutingAssembly().Location;
+      return Path.Combine(Path.GetDirectoryName(executingPath), fileName);
+    }
+
+    /// <summary>
+    /// Returns a filesystem safe name of the given <paramref name="filename"/> by replacing all invalid characters with the <paramref name="replaceChar"/>.
+    /// </summary>
+    /// <param name="filename">Filename to replace.</param>
+    /// <param name="replaceChar">Replacement character.</param>
+    /// <returns>Safe name or <c>null</c> if <paramref name="filename"/> is <seealso cref="string.IsNullOrWhiteSpace"/>.</returns>
+    public static string GetSafeFilename(string filename, char replaceChar = '_')
+    {
+      return string.IsNullOrWhiteSpace(filename) ? 
+        null :
+        Path.GetInvalidFileNameChars().Aggregate(filename, (current, c) => current.Replace(c, replaceChar));
+    }
+
+    /// <summary>
+    /// Returns a filesystem safe path of the given <paramref name="path"/> by replacing all invalid characters with the <paramref name="replaceChar"/>.
+    /// </summary>
+    /// <param name="path">Path to replace.</param>
+    /// <param name="replaceChar">Replacement character.</param>
+    /// <returns>Safe name or <c>null</c> if <paramref name="path"/> is <seealso cref="string.IsNullOrWhiteSpace"/>.</returns>
+    public static string GetSafePath(string path, char replaceChar = '_')
+    {
+      return string.IsNullOrWhiteSpace(path) ? 
+        null :
+        Path.GetInvalidPathChars().Aggregate(path, (current, c) => current.Replace(c, replaceChar));
     }
   }
 }

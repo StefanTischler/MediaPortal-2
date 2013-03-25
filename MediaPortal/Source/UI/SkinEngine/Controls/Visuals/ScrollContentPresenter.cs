@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -275,10 +275,10 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
       base.Render(parentRenderContext);
     }
 
-    public override void DoRender(RenderContext localRenderContext)
+    public override void RenderOverride(RenderContext localRenderContext)
     {
-      base.DoRender(localRenderContext); // Do the actual rendering
-      // After rendering our children (in DoRender) the following line resets the RenderContext's bounds so
+      base.RenderOverride(localRenderContext); // Do the actual rendering
+      // After rendering our children (in ContentPresenter.RenderOverride) the following line resets the RenderContext's bounds so
       // that rendering with an OpacityMask will clip the final output correctly to our scrolled viewport.
       localRenderContext.SetUntransformedBounds(ActualBounds);
     }

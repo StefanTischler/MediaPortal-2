@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -218,7 +218,7 @@ namespace UPnP.Infrastructure.CP
         try
         {
           response = (HttpWebResponse) state.Request.EndGetResponse(ar);
-          body = response.GetResponseStream();
+          body = CompressionHelper.Decompress(response);
           string mediaType;
           if (!EncodingUtils.TryParseContentTypeEncoding(response.ContentType, Encoding.UTF8, out mediaType, out contentEncoding) ||
               mediaType != "text/xml")
@@ -296,6 +296,7 @@ namespace UPnP.Infrastructure.CP
       request.UserAgent = UPnPConfiguration.UPnPMachineInfoHeader;
       request.ContentType = "text/xml; charset=\"utf-8\"";
       request.Headers.Add("SOAPACTION", action.Action_URN);
+      request.Headers.Add("Accept-Encoding", CompressionHelper.GetAcceptedEncodings());
       return request;
     }
 

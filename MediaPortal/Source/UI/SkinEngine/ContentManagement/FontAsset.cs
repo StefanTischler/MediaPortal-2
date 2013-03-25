@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -55,12 +55,15 @@ namespace MediaPortal.UI.SkinEngine.ContentManagement
     }
 
     /// <summary>
-    /// Gets the <see cref="FontAsset"/>'s base for the given <paramref name="fontSize"/>.
+    /// Gets the <see cref="FontAsset"/>'s ascender for the given <paramref name="fontSize"/>.
+    /// The ascender is the portion of a letter from its base line to the top; the ascender is the size of most upper case letters.
+    /// The ascender is smaller than the <see cref="LineHeight"/>; some letters like <c>y</c> or <c>j</c> add descender below the
+    /// base line. Together, ascender and descender are the <see cref="LineHeight"/>.
     /// </summary>
     /// <param name="fontSize">The scale size.</param>
-    public float Base(float fontSize)
+    public float Ascender(float fontSize)
     {
-      return _assetCore.Base(fontSize); 
+      return _assetCore.Ascender(fontSize); 
     }
 
     /// <summary>

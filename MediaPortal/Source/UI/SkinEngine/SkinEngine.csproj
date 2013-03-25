@@ -181,6 +181,11 @@
     <Compile Include="DirectX\DxCapabilities.cs" />
     <Compile Include="DirectX\MPDirect3D.cs" />
     <Compile Include="DirectX\PositionColoredTextured.cs" />
+    <Compile Include="DirectX\RenderStrategy\AbstractStrategy.cs" />
+    <Compile Include="DirectX\RenderStrategy\Default.cs" />
+    <Compile Include="DirectX\RenderStrategy\IRenderStrategy.cs" />
+    <Compile Include="DirectX\RenderStrategy\MaxPerformance.cs" />
+    <Compile Include="DirectX\RenderStrategy\VSync.cs" />
     <Compile Include="DirectX\Triangulate\GraphicsPathHelper.cs" />
     <Compile Include="DirectX\Triangulate\TriangulateHelper.cs" />
     <Compile Include="Fonts\FontFamily.cs" />
@@ -193,6 +198,7 @@
     <Compile Include="Geometry\GeometryStretch.cs" />
     <Compile Include="Geometry\GeometryZoom.cs" />
     <Compile Include="Geometry\GeometryZoom149.cs" />
+    <Compile Include="InputManagement\ClipboardManager.cs" />
     <Compile Include="InputManagement\InputMapper.cs" />
     <Compile Include="MarkupExtensions\ColorMarkupExtension.cs" />
     <Compile Include="MarkupExtensions\IMultiValueConverter.cs" />
@@ -241,6 +247,8 @@
     <Compile Include="MpfElements\Converters\expr\Tree.cs" />
     <Compile Include="MpfElements\Converters\expr\UnaryOp.cs" />
     <Compile Include="MpfElements\Converters\expr\Variable.cs" />
+    <Compile Include="MpfElements\Converters\DurationConverter.cs" />
+    <Compile Include="MpfElements\Converters\PriorityBindingConverter.cs" />
     <Compile Include="MpfElements\Converters\ReferenceNotNull_BoolConverter.cs" />
     <Compile Include="MpfElements\Converters\expr\Error.cs" />
     <Compile Include="MpfElements\IBindingContainer.cs" />

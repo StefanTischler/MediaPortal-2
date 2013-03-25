@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -154,12 +154,10 @@ namespace MediaPortal.Common.Services.Logging
       string stringSize = "-";
       if (size != null)
       {
-        string end;
-
         UInt64 uBytes = (UInt64)size;
         double bytes = uBytes;
 
-        end = "B";
+        string end = "B";
         if (bytes > 1024)
         {
           end = "KB";
@@ -190,9 +188,9 @@ namespace MediaPortal.Common.Services.Logging
         return string.Empty;
       string[] subKeys = mainKey.GetSubKeyNames();
       string cpuInfos = string.Empty;
-      for (int i = 0; i < subKeys.Length; i++)
+      foreach (string t in subKeys)
       {
-        RegistryKey key = mainKey.OpenSubKey(subKeys[i]);
+        RegistryKey key = mainKey.OpenSubKey(t);
         if (key == null)
           continue;
         string cpuType = (string) key.GetValue("ProcessorNameString", "<unknown>");

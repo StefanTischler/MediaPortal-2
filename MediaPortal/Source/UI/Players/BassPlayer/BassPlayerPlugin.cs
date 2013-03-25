@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -28,10 +28,10 @@ using MediaPortal.Common.Logging;
 using MediaPortal.Common.MediaManagement;
 using MediaPortal.Common.ResourceAccess;
 using MediaPortal.Common.PluginManager;
+using MediaPortal.UI.Players.BassPlayer.PlayerComponents;
 using MediaPortal.UI.Presentation.Players;
-using Ui.Players.BassPlayer.PlayerComponents;
 
-namespace Ui.Players.BassPlayer
+namespace MediaPortal.UI.Players.BassPlayer
 {
   public class BassPlayerPlugin : IPluginStateTracker, IPlayerBuilder
   {

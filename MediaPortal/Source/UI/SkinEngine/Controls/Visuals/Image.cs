@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -60,7 +60,7 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
   }
 
   // TODO: Thumbnail property & handling is not implemented for all image sources. Makes it sense to have this property in the Image class? Should it be reworked?
-  public class Image : Control
+  public class Image : FrameworkElement
   {
     #region Classes
 
@@ -299,29 +299,6 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
       get { return _hasImageProperty; }
     }
 
-    protected override SizeF CalculateInnerDesiredSize(SizeF totalSize)
-    {
-      ImageSourceState allocatedSource = GetLoadedSource(false);
-      if (allocatedSource == null)
-      {
-        _lastImageSourceSize = SizeF.Empty;
-        return new SizeF(10, 10);
-      }
-
-      SizeF imageSize = allocatedSource.ImageSource.SourceSize;
-      float sourceFrameRatio = imageSize.Width / imageSize.Height;
-      // Adaptions when available size is not specified in any direction(s)
-      if (double.IsNaN(totalSize.Width) && double.IsNaN(totalSize.Height))
-        totalSize = imageSize;
-      else if (double.IsNaN(totalSize.Height))
-        totalSize.Height = totalSize.Width / sourceFrameRatio;
-      else if (double.IsNaN(totalSize.Width))
-        totalSize.Width = totalSize.Height * sourceFrameRatio;
-
-      _lastImageSourceSize = imageSize;
-      return allocatedSource.ImageSource.StretchSource(totalSize, imageSize, Stretch, StretchDirection);
-    }
-
     protected ImageSourceState GetLoadedSource(bool invalidateLayout)
     {
       if (_loadImageSource)
@@ -408,56 +385,88 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
     /// <returns>ImageSource or null</returns>
     protected ImageSource LoadImageSource(object source, bool allowThumbs)
     {
-      ImageSource result;
+      if (source == null)
+        return null;
       bool thumbnail = allowThumbs && Thumbnail;
 
       _invalidateImageSourceOnResize = false;
       if (source is MediaItem)
       {
-        result = MediaItemsHelper.CreateThumbnailImageSource((MediaItem) source, (int) Math.Max(Width, Height));
         _invalidateImageSourceOnResize = true;
+        return MediaItemsHelper.CreateThumbnailImageSource((MediaItem) source, (int) Math.Max(Width, Height));
       }
-      else if (source is IResourceLocator)
+      if (source is IResourceLocator)
       {
         IResourceLocator resourceLocator = (IResourceLocator) source;
-        result = new ResourceAccessorTextureImageSource(resourceLocator.CreateAccessor(), RightAngledRotation.Zero);
+        IResourceAccessor ra = resourceLocator.CreateAccessor();
+        IFileSystemResourceAccessor fsra = ra as IFileSystemResourceAccessor;
+        if (fsra == null)
+          ra.Dispose();
+        else
+          return new ResourceAccessorTextureImageSource(fsra, RightAngledRotation.Zero);
       }
-      else
-        result = source as ImageSource;
-      if (result == null)
+      ImageSource result = source as ImageSource;
+      if (result != null)
+        return result;
+      string uriSource = source as string;
+      if (!string.IsNullOrEmpty(uriSource))
       {
-        string uriSource = source as string;
-        if (!string.IsNullOrEmpty(uriSource))
+        // Remember to adapt list of supported extensions for image player plugin...
+        if (IsValidSource(uriSource))
         {
-          // Remember to adapt list of supported extensions for image player plugin...
-          if (IsValidSource(uriSource))
-          {
-            BitmapImageSource bmi = new BitmapImageSource { UriSource = uriSource, Thumbnail = thumbnail };
-            if (thumbnail)
-              // Set the requested thumbnail dimension, to use the best matching format.
-              bmi.ThumbnailDimension = (int) Math.Max(Width, Height);
-            result = bmi;
-          }
-          // TODO: More image types
-          else
-          {
-            if (_formerWarnURI != uriSource)
-            {
-              ServiceRegistration.Get<ILogger>().Warn("Image: Image source '{0}' is not supported", uriSource);
-              // Remember if we already wrote a warning to the log to avoid log flooding
-              _formerWarnURI = uriSource;
-            }
-          }
+          BitmapImageSource bmi = new BitmapImageSource { UriSource = uriSource, Thumbnail = thumbnail };
+          if (thumbnail)
+            // Set the requested thumbnail dimension, to use the best matching format.
+            bmi.ThumbnailDimension = (int) Math.Max(Width, Height);
+          return bmi;
         }
+        // TODO: More image types
       }
-      return result;
+      string warnSource = source.ToString();
+      if (_formerWarnURI != warnSource)
+      {
+        ServiceRegistration.Get<ILogger>().Warn("Image: Image source '{0}' is not supported", warnSource);
+        // Remember if we already wrote a warning to the log to avoid log flooding
+        _formerWarnURI = uriSource;
+      }
+      return null;
     }
 
-    public override void DoRender(RenderContext localRenderContext)
+    protected override SizeF CalculateInnerDesiredSize(SizeF totalSize)
+    {
+      ImageSourceState allocatedSource = GetLoadedSource(false);
+      if (allocatedSource == null)
+      {
+        _lastImageSourceSize = SizeF.Empty;
+        return new SizeF(10, 10);
+      }
+
+      SizeF imageSize = allocatedSource.ImageSource.SourceSize;
+      float sourceFrameRatio = imageSize.Width / imageSize.Height;
+      // Adaptions when available size is not specified in any direction(s)
+      if (double.IsNaN(totalSize.Width) && double.IsNaN(totalSize.Height))
+        totalSize = imageSize;
+      else if (double.IsNaN(totalSize.Height))
+        totalSize.Height = totalSize.Width / sourceFrameRatio;
+      else if (double.IsNaN(totalSize.Width))
+        totalSize.Width = totalSize.Height * sourceFrameRatio;
+
+      _lastImageSourceSize = imageSize;
+      return allocatedSource.ImageSource.StretchSource(totalSize, imageSize, Stretch, StretchDirection);
+    }
+
+    protected override void ArrangeOverride()
+    {
+      base.ArrangeOverride();
+      _sourceState.Setup = false;
+      _fallbackSourceState.Setup = false;
+    }
+
+    public override void RenderOverride(RenderContext localRenderContext)
     {
       ImageSourceState allocatedSource = GetLoadedSource(true);
       if (allocatedSource == null)
-        base.DoRender(localRenderContext);
+        base.RenderOverride(localRenderContext);
       else
       {
         // Update source geometry if necessary (source has changed, layout has changed).
@@ -466,16 +475,9 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
           allocatedSource.ImageSource.Setup(_innerRect, localRenderContext.ZOrder, SkinNeutralAR);
           allocatedSource.Setup = true;
         }
-        base.DoRender(localRenderContext);
+        base.RenderOverride(localRenderContext);
         allocatedSource.ImageSource.Render(localRenderContext, Stretch, StretchDirection);
       }
-    }
-
-    protected override void ArrangeOverride()
-    {
-      base.ArrangeOverride();
-      _sourceState.Setup = false;
-      _fallbackSourceState.Setup = false;
     }
 
     public override void Allocate()
@@ -499,9 +501,9 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
       }
     }
 
-    public override void FireEvent(string eventName, RoutingStrategyEnum routingStrategy)
+    protected override void DoFireEvent(string eventName)
     {
-      base.FireEvent(eventName, routingStrategy);
+      base.DoFireEvent(eventName);
       if (eventName == VISIBILITY_CHANGED_EVENT)
       {
         if (!CheckVisibility())

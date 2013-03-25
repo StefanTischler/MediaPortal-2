@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -22,6 +22,7 @@
 
 #endregion
 
+using System.Linq;
 using System.Media;
 using MediaPortal.Common;
 using MediaPortal.Common.General;
@@ -90,10 +91,8 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals.Triggers
         return;
       if (_disableOnAudioOutput)
       {
-        IPlayerManager playerManager = ServiceRegistration.Get<IPlayerManager>();
-        IPlayer player1 = playerManager[PlayerManagerConsts.PRIMARY_SLOT];
-        IPlayer player2 = playerManager[PlayerManagerConsts.SECONDARY_SLOT];
-        if (player1 is IAudioPlayer || player1 is IVideoPlayer || player2 is IAudioPlayer || player2 is IVideoPlayer)
+        if (ServiceRegistration.Get<IPlayerManager>().PlayerSlotControllers.Select(slotController => slotController.CurrentPlayer).Any(
+            player => player is IAudioPlayer || player is IVideoPlayer))
           return;
       }
       using (SoundPlayer simpleSound = new SoundPlayer(SkinContext.SkinResources.GetResourceFilePath(

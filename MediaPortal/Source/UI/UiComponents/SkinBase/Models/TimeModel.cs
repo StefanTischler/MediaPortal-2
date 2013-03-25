@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -55,7 +55,7 @@ namespace MediaPortal.UiComponents.SkinBase.Models
 
     #endregion
 
-    public TimeModel() : base(500)
+    public TimeModel() : base(true, 500)
     {
       ReadSettings();
 
@@ -101,8 +101,8 @@ namespace MediaPortal.UiComponents.SkinBase.Models
 
       DateTime now = DateTime.Now;
 
-      double Angle = now.Hour * 30;
-      HourAngle = Angle + 12 * now.Minute / 60.0;
+      double angle = now.Hour * 30;
+      HourAngle = angle + 12 * now.Minute / 60.0;
 
       MinuteAngle = now.Minute * 6;
 

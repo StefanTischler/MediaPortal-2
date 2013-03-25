@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -28,7 +28,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using MediaPortal.Common;
 using MediaPortal.Common.General;
 using MediaPortal.Common.Localization;

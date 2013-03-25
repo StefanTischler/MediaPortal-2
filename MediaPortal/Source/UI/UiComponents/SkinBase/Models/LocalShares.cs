@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -167,7 +167,10 @@ namespace MediaPortal.UiComponents.SkinBase.Models
       {
         using (ra)
         {
-          ICollection<IFileSystemResourceAccessor> res = FileSystemResourceNavigator.GetChildDirectories(ra, false);
+          IFileSystemResourceAccessor fsra = ra as IFileSystemResourceAccessor;
+          if (fsra == null)
+            yield break;
+          ICollection<IFileSystemResourceAccessor> res = FileSystemResourceNavigator.GetChildDirectories(fsra, false);
           if (res != null)
             foreach (IFileSystemResourceAccessor childAccessor in res)
               using (childAccessor)
@@ -182,10 +185,7 @@ namespace MediaPortal.UiComponents.SkinBase.Models
         }
       }
       else
-      {
         ServiceRegistration.Get<ILogger>().Warn("LocalShares: Cannot access resource path '{0}' for getting child directories", path);
-        yield break;
-      }
     }
 
     protected override IDictionary<string, MediaCategory> GetAllAvailableCategories()

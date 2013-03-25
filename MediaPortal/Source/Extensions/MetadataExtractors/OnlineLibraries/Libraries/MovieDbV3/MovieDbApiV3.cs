@@ -1,7 +1,7 @@
-﻿#region Copyright (C) 2007-2012 Team MediaPortal
+﻿#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -22,12 +22,10 @@
 
 #endregion
 
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
-using System.Text;
 using System.Web;
+using MediaPortal.Extensions.OnlineLibraries.Libraries.Common;
 using MediaPortal.Extensions.OnlineLibraries.Libraries.MovieDbV3.Data;
 using Newtonsoft.Json;
 
@@ -53,6 +51,7 @@ namespace MediaPortal.Extensions.OnlineLibraries.Libraries.MovieDbV3
     private readonly string _apiKey;
     private readonly string _cachePath;
     private Configuration _configuration;
+    private readonly Downloader _downloader;
 
     #endregion
 
@@ -77,6 +76,8 @@ namespace MediaPortal.Extensions.OnlineLibraries.Libraries.MovieDbV3
     {
       _apiKey = apiKey;
       _cachePath = cachePath;
+      _downloader = new Downloader { EnableCompression = true };
+      _downloader.Headers["Accept"] = "application/json";
     }
 
     #endregion
@@ -92,7 +93,7 @@ namespace MediaPortal.Extensions.OnlineLibraries.Libraries.MovieDbV3
     public List<MovieSearchResult> SearchMovie(string query, string language)
     {
       string url = GetUrl(URL_QUERY, language) + "&query=" + HttpUtility.UrlEncode(query);
-      PagedMovieSearchResult results = Download<PagedMovieSearchResult>(url);
+      PagedMovieSearchResult results = _downloader.Download<PagedMovieSearchResult>(url);
       return results.Results;
     }
 
@@ -112,7 +113,7 @@ namespace MediaPortal.Extensions.OnlineLibraries.Libraries.MovieDbV3
         return JsonConvert.DeserializeObject<Movie>(json);
       }
       string url = GetUrl(URL_GETMOVIE, language, id);
-      return Download<Movie>(url, cache);
+      return _downloader.Download<Movie>(url, cache);
     }
 
     /// <summary>
@@ -131,7 +132,7 @@ namespace MediaPortal.Extensions.OnlineLibraries.Libraries.MovieDbV3
         return JsonConvert.DeserializeObject<Movie>(json);
       }
       string url = GetUrl(URL_GETMOVIE, language, imdbId);
-      return Download<Movie>(url, cache);
+      return _downloader.Download<Movie>(url, cache);
     }
 
     /// <summary>
@@ -141,7 +142,7 @@ namespace MediaPortal.Extensions.OnlineLibraries.Libraries.MovieDbV3
     public Configuration GetImageConfiguration()
     {
       string url = GetUrl(URL_GETCONFIG, null);
-      return Download<Configuration>(url);
+      return _downloader.Download<Configuration>(url);
     }
 
     /// <summary>
@@ -152,7 +153,7 @@ namespace MediaPortal.Extensions.OnlineLibraries.Libraries.MovieDbV3
     public MovieCasts GetCastCrew(int id)
     {
       string url = GetUrl(URL_GETCASTCREW, null, id);
-      MovieCasts result = Download<MovieCasts>(url);
+      MovieCasts result = _downloader.Download<MovieCasts>(url);
       return result;
     }
 
@@ -165,7 +166,7 @@ namespace MediaPortal.Extensions.OnlineLibraries.Libraries.MovieDbV3
     public ImageCollection GetImages(int id, string language)
     {
       string url = GetUrl(URL_GETIMAGES, language, id);
-      ImageCollection result = Download<ImageCollection>(url);
+      ImageCollection result = _downloader.Download<ImageCollection>(url);
       result.SetMovieIds();
       return result;
     }
@@ -183,7 +184,25 @@ namespace MediaPortal.Extensions.OnlineLibraries.Libraries.MovieDbV3
         return false;
 
       string sourceUri = Configuration.Images.BaseUrl + "original" + image.FilePath;
-      DownloadFile(sourceUri, cacheFileName);
+      _downloader.DownloadFile(sourceUri, cacheFileName);
+      return true;
+    }
+
+    public bool DownloadImages(MovieCollection movieCollection)
+    {
+      DownloadImages(movieCollection, true);
+      DownloadImages(movieCollection, false);
+      return true;
+    }
+
+    private bool DownloadImages(MovieCollection movieCollection, bool usePoster)
+    {
+      string cacheFileName = CreateAndGetCacheName(movieCollection, usePoster);
+      if (string.IsNullOrEmpty(cacheFileName))
+        return false;
+
+      string sourceUri = Configuration.Images.BaseUrl + "original" + (usePoster ? movieCollection.PosterPath : movieCollection.BackdropPath);
+      _downloader.DownloadFile(sourceUri, cacheFileName);
       return true;
     }
 
@@ -203,58 +222,6 @@ namespace MediaPortal.Extensions.OnlineLibraries.Libraries.MovieDbV3
       string replacedUrl = string.Format(urlBase, args);
       return string.Format("{0}?api_key={1}", replacedUrl, _apiKey) + (string.IsNullOrEmpty(language) ? "" : "&language=" + language);
     }
-
-    /// <summary>
-    /// Downloads the requested information from the JSON api and deserializes the response to the requested <typeparam name="TE">Type</typeparam>.
-    /// This method can save the response to local cache, if a valid path is passed in <paramref name="saveCacheFile"/>.
-    /// </summary>
-    /// <typeparam name="TE">Target type</typeparam>
-    /// <param name="url">Url to download</param>
-    /// <param name="saveCacheFile">Optional name for saving response to cache</param>
-    /// <returns>Downloaded object</returns>
-    protected TE Download<TE>(string url, string saveCacheFile = null)
-    {
-      string json = DownloadJSON(url);
-      if (!string.IsNullOrEmpty(saveCacheFile))
-        WriteCache(saveCacheFile, json);
-      return JsonConvert.DeserializeObject<TE>(json);
-    }
-
-    /// <summary>
-    /// Downloads the JSON string from API.
-    /// </summary>
-    /// <param name="url">Url to download</param>
-    /// <returns>JSON result</returns>
-    protected string DownloadJSON(string url)
-    {
-      WebClient webClient = new WebClient { Encoding = Encoding.UTF8 };
-      webClient.Headers["Accept"] = "application/json";
-      return webClient.DownloadString(url);
-    }
-
-    /// <summary>
-    /// Donwload a file from given <paramref name="url"/> and save it to <paramref name="downloadFile"/>.
-    /// </summary>
-    /// <param name="url">Url to download</param>
-    /// <param name="downloadFile">Target file name</param>
-    /// <returns><c>true</c> if successful</returns>
-    protected bool DownloadFile(string url, string downloadFile)
-    {
-      if (File.Exists(downloadFile))
-        return true;
-      try
-      {
-        WebClient webClient = new WebClient();
-        webClient.DownloadFile(url, downloadFile);
-        return true;
-      }
-      catch (Exception ex)
-      {
-        // TODO: logging
-        return false;
-      }
-    }
-
     /// <summary>
     /// Creates a local file name for loading and saving <see cref="MovieImage"/>s.
     /// </summary>
@@ -269,6 +236,31 @@ namespace MediaPortal.Extensions.OnlineLibraries.Libraries.MovieDbV3
         if (!Directory.Exists(folder))
           Directory.CreateDirectory(folder);
         return Path.Combine(folder, image.FilePath.TrimStart(new[] { '/' }));
+      }
+      catch
+      {
+        // TODO: logging
+        return null;
+      }
+    }
+
+    /// <summary>
+    /// Creates a local file name for loading and saving images of a <see cref="MovieCollection"/>.
+    /// </summary>
+    /// <param name="collection">MovieCollection</param>
+    /// <param name="usePoster"><c>true</c> for Poster, <c>false</c> for Backdrop</param>
+    /// <returns>Cache file name or <c>null</c> if directory could not be created</returns>
+    protected string CreateAndGetCacheName(MovieCollection collection, bool usePoster)
+    {
+      try
+      {
+        string folder = Path.Combine(_cachePath, string.Format(@"COLL_{0}\{1}", collection.Id, usePoster ? "Posters" : "Backdrops"));
+        if (!Directory.Exists(folder))
+          Directory.CreateDirectory(folder);
+        string fileName = usePoster ? collection.PosterPath : collection.BackdropPath;
+        if (string.IsNullOrEmpty(fileName))
+          return null;
+        return Path.Combine(folder, fileName.TrimStart(new[] { '/' }));
       }
       catch
       {
@@ -296,27 +288,6 @@ namespace MediaPortal.Extensions.OnlineLibraries.Libraries.MovieDbV3
       {
         // TODO: logging
         return null;
-      }
-    }
-
-    /// <summary>
-    /// Writes JSON strings to cache file.
-    /// </summary>
-    /// <param name="cachePath"></param>
-    /// <param name="json"></param>
-    protected void WriteCache(string cachePath, string json)
-    {
-      if (string.IsNullOrEmpty(cachePath))
-        return;
-
-      using(FileStream fs = new FileStream(cachePath, FileMode.Create, FileAccess.Write))
-      {
-        using (StreamWriter sw = new StreamWriter(fs))
-        {
-          sw.Write(json);
-          sw.Close();
-        }
-        fs.Close();
       }
     }
 

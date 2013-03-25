@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -93,6 +93,9 @@ namespace MediaPortal.UI.SkinEngine
       ServiceRegistration.Get<ILogger>().Debug("SkinEnginePlugin: Registering IInputManager service");
       ServiceRegistration.Set<IInputManager>(InputManager.Instance);
 
+      ServiceRegistration.Get<ILogger>().Debug("SkinEnginePlugin: Registering IClipboardManager service");
+      ServiceRegistration.Set<IClipboardManager>(ClipboardManager.Instance);
+
       ServiceRegistration.Get<ILogger>().Debug("SkinEnginePlugin: Registering ISuperLayerManager service");
       ServiceRegistration.Set<ISuperLayerManager>(SuperLayerManager.Instance);
 
@@ -148,6 +151,9 @@ namespace MediaPortal.UI.SkinEngine
       ServiceRegistration.Get<ILogger>().Debug("SkinEnginePlugin: Removing IScreenManager service");
       ServiceRegistration.RemoveAndDispose<IScreenManager>();
       _screenManager = null;
+
+      ServiceRegistration.Get<ILogger>().Debug("SkinEnginePlugin: Removing IClipboardManager service");
+      ServiceRegistration.RemoveAndDispose<IClipboardManager>();
 
       ServiceRegistration.Get<ILogger>().Debug("SkinEnginePlugin: Removing IInputManager service");
       ServiceRegistration.RemoveAndDispose<IInputManager>();

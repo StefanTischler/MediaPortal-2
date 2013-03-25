@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -28,8 +28,8 @@ using MediaPortal.Common.Messaging;
 namespace MediaPortal.UI.Presentation.Players
 {
   /// <summary>
-  /// This class provides an interface for the messages sent by the player manager.
-  /// This class is part of the player manager API.
+  /// This class provides an interface for the messages sent by the player context manager.
+  /// This class is part of the player context manager API.
   /// </summary>
   public class PlayerContextManagerMessaging
   {
@@ -40,15 +40,20 @@ namespace MediaPortal.UI.Presentation.Players
     public enum MessageType
     {
       /// <summary>
-      /// The current player slot controller changed. The PLAYER_SLOT will contain the new player slot index.
+      /// The primary and secondary players were exchanged.
+      /// </summary>
+      PlayerSlotsChanged,
+
+      /// <summary>
+      /// The current player slot controller changed. The <see cref="PLAYER_CONTEXT"/> message property will contain the
+      /// new player context.
       /// Note that this message is only sent when the current player slot controller changes, it isn't sent when
       /// the player slots were exchanged (for example when the primary video is exchanged with the PiP video) and thus
       /// the current player index was changed to the other player. So when tracking the current player and the
-      /// player slot index is important, the message <see cref="PlayerManagerMessaging.MessageType.PlayerSlotsChanged"/>
-      /// might also be interesting.
+      /// player slot index is important, the message <see cref="PlayerSlotsChanged"/> might also be interesting.
       /// </summary>
       /// <remarks>
-      /// With this message, the <see cref="PLAYER_SLOT"/> property will be set.
+      /// With this message, the <see cref="PLAYER_CONTEXT"/> property will be set.
       /// </remarks>
       CurrentPlayerChanged,
 
@@ -57,28 +62,34 @@ namespace MediaPortal.UI.Presentation.Players
       /// player index. It is used to enqueue that job after all other messages to avoid multithreading issues.
       /// </summary>
       /// <remarks>
-      /// With this message, the <see cref="CURRENT_PLAYER_INDEX"/> <see cref="AUDIO_PLAYER_INDEX"/> properties will be set.
+      /// With this message, the <see cref="NEW_CURRENT_PLAYER_CONTEXT"/> <see cref="NEW_AUDIO_PLAYER_CONTEXT"/> properties will be set.
       /// </remarks>
       UpdatePlayerRolesInternal,
     }
 
     // Message data
-    public const string PLAYER_SLOT = "PlayerSlot"; // Player slot index of type int
-    public const string CURRENT_PLAYER_INDEX = "CurrentPlayer"; // Player slot index of type int
-    public const string AUDIO_PLAYER_INDEX = "AudioPlayer"; // Player slot index of type int
+    public const string PLAYER_CONTEXT = "PlayerContext"; // Type IPlayerContext
+    public const string NEW_CURRENT_PLAYER_CONTEXT = "CurrentPlayer"; // Type IPlayerContext
+    public const string NEW_AUDIO_PLAYER_CONTEXT = "AudioPlayer"; // Type IPlayerContext
 
-    public static void SendPlayerContextManagerMessage(MessageType type, int playerSlot)
+    public static void SendPlayerContextManagerMessage(MessageType type)
     {
       SystemMessage msg = new SystemMessage(type);
-      msg.MessageData[PLAYER_SLOT] = playerSlot;
       ServiceRegistration.Get<IMessageBroker>().Send(CHANNEL, msg);
     }
 
-    public static void SendUpdatePlayerRolesMessage(int currentPlayerIndex, int audioPlayerIndex)
+    public static void SendPlayerContextManagerMessage(MessageType type, IPlayerContext playerContext)
+    {
+      SystemMessage msg = new SystemMessage(type);
+      msg.MessageData[PLAYER_CONTEXT] = playerContext;
+      ServiceRegistration.Get<IMessageBroker>().Send(CHANNEL, msg);
+    }
+
+    internal static void SendUpdatePlayerRolesMessage(IPlayerContext newCurrentPlayerContext, IPlayerContext newAudioPlayerContext)
     {
       SystemMessage msg = new SystemMessage(MessageType.UpdatePlayerRolesInternal);
-      msg.MessageData[CURRENT_PLAYER_INDEX] = currentPlayerIndex;
-      msg.MessageData[AUDIO_PLAYER_INDEX] = audioPlayerIndex;
+      msg.MessageData[NEW_CURRENT_PLAYER_CONTEXT] = newCurrentPlayerContext;
+      msg.MessageData[NEW_AUDIO_PLAYER_CONTEXT] = newAudioPlayerContext;
       ServiceRegistration.Get<IMessageBroker>().Send(CHANNEL, msg);
     }
   }

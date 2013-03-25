@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -74,7 +74,7 @@ namespace UPnP.Infrastructure.Dv.DeviceTree
     /// character ("_"), followed by the vendor-assigned action name. The vendor-assigned
     /// action name must comply with the syntax rules defined above.</item>
     /// </list>
-    /// Case sensitive. SHOULD be < 32 characters.
+    /// Case sensitive. SHOULD be &lt; 32 characters.
     /// </param>
     /// <param name="onInvoke">Delegate which gets called when this action is invoked.</param>
     /// <param name="inArguments">Enumeration of formal input arguments for this action.</param>

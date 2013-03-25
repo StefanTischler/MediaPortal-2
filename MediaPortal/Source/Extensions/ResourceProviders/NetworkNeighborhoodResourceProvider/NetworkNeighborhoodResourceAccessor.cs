@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -169,11 +169,6 @@ namespace MediaPortal.Extensions.ResourceProviders.NetworkNeighborhoodResourcePr
       return new NetworkNeighborhoodResourceAccessor(_parent, _path);
     }
 
-    public bool IsDirectory
-    {
-      get { return _underlayingResource == null ? true : _underlayingResource.IsDirectory; }
-    }
-
     public bool ResourceExists(string path)
     {
       return IsServerPath(path) || (_underlayingResource != null && _underlayingResource.ResourceExists(path));
@@ -215,6 +210,15 @@ namespace MediaPortal.Extensions.ResourceProviders.NetworkNeighborhoodResourcePr
     public string LocalFileSystemPath
     {
       get { return _path.Replace('/', '\\'); }
+    }
+
+    #endregion
+
+    #region Base overrides
+
+    public override string ToString()
+    {
+      return LocalFileSystemPath;
     }
 
     #endregion

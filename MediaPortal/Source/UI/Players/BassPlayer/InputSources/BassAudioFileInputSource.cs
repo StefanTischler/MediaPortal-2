@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -26,11 +26,11 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using MediaPortal.Common.ResourceAccess;
-using Ui.Players.BassPlayer.Interfaces;
-using Ui.Players.BassPlayer.Utils;
+using MediaPortal.UI.Players.BassPlayer.Interfaces;
+using MediaPortal.UI.Players.BassPlayer.Utils;
 using Un4seen.Bass;
 
-namespace Ui.Players.BassPlayer.InputSources
+namespace MediaPortal.UI.Players.BassPlayer.InputSources
 {
   /// <summary>
   /// Represents a file inputsource.
@@ -52,10 +52,10 @@ namespace Ui.Players.BassPlayer.InputSources
       public StreamInput(Stream inputStream)
       {
         _inputStream = inputStream;
-        _fileProcs = new BASS_FILEPROCS(closeCallback, lengthCalback, readCallback, seekCallback);
+        _fileProcs = new BASS_FILEPROCS(CloseCallback, LengthCalback, ReadCallback, SeekCallback);
       }
 
-      private bool seekCallback(long offset, IntPtr user)
+      private bool SeekCallback(long offset, IntPtr user)
       {
         try
         {
@@ -68,7 +68,7 @@ namespace Ui.Players.BassPlayer.InputSources
         }
       }
 
-      private int readCallback(IntPtr buffer, int length, IntPtr user)
+      private int ReadCallback(IntPtr buffer, int length, IntPtr user)
       {
         // Code taken from BASS help for BASS_FILEPROCS class
         try
@@ -84,12 +84,12 @@ namespace Ui.Players.BassPlayer.InputSources
         catch { return 0; }
       }
 
-      private long lengthCalback(IntPtr user)
+      private long LengthCalback(IntPtr user)
       {
         return _inputStream.Length;
       }
 
-      private void closeCallback(IntPtr user)
+      private void CloseCallback(IntPtr user)
       {
         _inputStream.Close();
       }
@@ -98,7 +98,6 @@ namespace Ui.Players.BassPlayer.InputSources
       {
         get { return _fileProcs; }
       }
-
     }
 
     #region Static members
@@ -108,7 +107,7 @@ namespace Ui.Players.BassPlayer.InputSources
     /// </summary>
     /// <param name="resourceAccessor">The resource accessor to the media item to be handled by the instance.</param>
     /// <returns>The new instance.</returns>
-    public static BassAudioFileInputSource Create(IResourceAccessor resourceAccessor)
+    public static BassAudioFileInputSource Create(IFileSystemResourceAccessor resourceAccessor)
     {
       BassAudioFileInputSource inputSource = new BassAudioFileInputSource(resourceAccessor);
       inputSource.Initialize();
@@ -156,7 +155,7 @@ namespace Ui.Players.BassPlayer.InputSources
 
     #region Private Members
 
-    private BassAudioFileInputSource(IResourceAccessor resourceAccessor) : base(resourceAccessor) { }
+    private BassAudioFileInputSource(IFileSystemResourceAccessor resourceAccessor) : base(resourceAccessor) { }
 
     /// <summary>
     /// Initializes a new instance.

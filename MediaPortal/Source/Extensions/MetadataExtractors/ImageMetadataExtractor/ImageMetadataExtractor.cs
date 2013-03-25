@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -35,6 +35,8 @@ using MediaPortal.Common.Services.ResourceAccess.StreamedResourceToLocalFsAccess
 using MediaPortal.Common.Services.ThumbnailGenerator;
 using MediaPortal.Common.Settings;
 using MediaPortal.Extensions.MetadataExtractors.ImageMetadataExtractor.Settings;
+using MediaPortal.Extensions.OnlineLibraries;
+using MediaPortal.Extensions.OnlineLibraries.Libraries.GeoLocation.Data;
 using MediaPortal.Utilities;
 using MediaPortal.Utilities.SystemAPI;
 
@@ -134,44 +136,50 @@ namespace MediaPortal.Extensions.MetadataExtractors.ImageMetadataExtractor
 
       try
       {
+        if (!(mediaItemAccessor is IFileSystemResourceAccessor))
+          return false;
+        IFileSystemResourceAccessor fsra = mediaItemAccessor as IFileSystemResourceAccessor;
         // Open a stream for media item to detect mimeType.
-        using (Stream mediaStream = mediaItemAccessor.OpenRead())
+        using (Stream mediaStream = fsra.OpenRead())
         {
           string mimeType = MimeTypeDetector.GetMimeType(mediaStream);
           if (mimeType != null)
             mediaAspect.SetAttribute(MediaAspect.ATTR_MIME_TYPE, mimeType);
         }
         // Extract EXIF information from media item.
-        using (ExifMetaInfo.ExifMetaInfo exif = new ExifMetaInfo.ExifMetaInfo(mediaItemAccessor))
+        using (ExifMetaInfo.ExifMetaInfo exif = new ExifMetaInfo.ExifMetaInfo(fsra))
         {
           mediaAspect.SetAttribute(MediaAspect.ATTR_TITLE, ProviderPathHelper.GetFileNameWithoutExtension(fileName));
-          mediaAspect.SetAttribute(MediaAspect.ATTR_RECORDINGTIME, exif.OriginalDate != DateTime.MinValue ? exif.OriginalDate : mediaItemAccessor.LastChanged);
+          mediaAspect.SetAttribute(MediaAspect.ATTR_RECORDINGTIME, exif.OriginalDate != DateTime.MinValue ? exif.OriginalDate : fsra.LastChanged);
           mediaAspect.SetAttribute(MediaAspect.ATTR_COMMENT, StringUtils.TrimToNull(exif.ImageDescription));
 
-          imageAspect.SetAttribute(ImageAspect.ATTR_WIDTH, (int) exif.PixXDim);
-          imageAspect.SetAttribute(ImageAspect.ATTR_HEIGHT, (int) exif.PixYDim);
+          if (exif.PixXDim.HasValue) imageAspect.SetAttribute(ImageAspect.ATTR_WIDTH, (int) exif.PixXDim);
+          if (exif.PixYDim.HasValue) imageAspect.SetAttribute(ImageAspect.ATTR_HEIGHT, (int) exif.PixYDim);
           imageAspect.SetAttribute(ImageAspect.ATTR_MAKE, StringUtils.TrimToNull(exif.EquipMake));
           imageAspect.SetAttribute(ImageAspect.ATTR_MODEL, StringUtils.TrimToNull(exif.EquipModel));
-          imageAspect.SetAttribute(ImageAspect.ATTR_EXPOSURE_BIAS, ((double) exif.ExposureBias).ToString());
-          imageAspect.SetAttribute(ImageAspect.ATTR_EXPOSURE_TIME, exif.ExposureTime.ToString());
+          if (exif.ExposureBias.HasValue) imageAspect.SetAttribute(ImageAspect.ATTR_EXPOSURE_BIAS, ((double) exif.ExposureBias).ToString());
+          imageAspect.SetAttribute(ImageAspect.ATTR_EXPOSURE_TIME, exif.ExposureTime);
           imageAspect.SetAttribute(ImageAspect.ATTR_FLASH_MODE, StringUtils.TrimToNull(exif.FlashMode));
-          imageAspect.SetAttribute(ImageAspect.ATTR_FNUMBER, string.Format("F {0}", (double) exif.FNumber));
+          if (exif.FNumber.HasValue) imageAspect.SetAttribute(ImageAspect.ATTR_FNUMBER, string.Format("F {0}", (double) exif.FNumber));
           imageAspect.SetAttribute(ImageAspect.ATTR_ISO_SPEED, StringUtils.TrimToNull(exif.ISOSpeed));
-          imageAspect.SetAttribute(ImageAspect.ATTR_ORIENTATION, (Int32) exif.Orientation);
+          imageAspect.SetAttribute(ImageAspect.ATTR_ORIENTATION, (Int32) (exif.OrientationType ?? 0));
           imageAspect.SetAttribute(ImageAspect.ATTR_METERING_MODE, exif.MeteringMode.ToString());
 
-          IResourceAccessor ra = mediaItemAccessor.Clone();
-          ILocalFsResourceAccessor lfsra;
-          try
+          if (exif.Latitude.HasValue && exif.Longitude.HasValue)
           {
-            lfsra = StreamedResourceToLocalFsAccessBridge.GetLocalFsResourceAccessor(ra);
+            imageAspect.SetAttribute(ImageAspect.ATTR_LATITUDE, exif.Latitude);
+            imageAspect.SetAttribute(ImageAspect.ATTR_LONGITUDE, exif.Longitude);
+
+            LocationInfo locationInfo;
+            if (!forceQuickMode && GeoLocationMatcher.Instance.TryLookup(exif.Latitude.Value, exif.Longitude.Value, out locationInfo))
+            {
+              imageAspect.SetAttribute(ImageAspect.ATTR_CITY, locationInfo.City);
+              imageAspect.SetAttribute(ImageAspect.ATTR_STATE, locationInfo.State);
+              imageAspect.SetAttribute(ImageAspect.ATTR_COUNTRY, locationInfo.Country);
+            }
           }
-          catch
-          {
-            ra.Dispose();
-            throw;
-          }
-          using (lfsra)
+
+          using (ILocalFsResourceAccessor lfsra = StreamedResourceToLocalFsAccessBridge.GetLocalFsResourceAccessor((IFileSystemResourceAccessor) fsra.Clone()))
           {
             string localFsResourcePath = lfsra.LocalFileSystemPath;
             if (localFsResourcePath != null)

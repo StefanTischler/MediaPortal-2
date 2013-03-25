@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -189,8 +189,10 @@ namespace MediaPortal.Extensions.MetadataExtractors.SeriesMetadataExtractor
         if (forceQuickMode)
           return false;
 
-        using (IResourceAccessor ra = mediaItemAccessor.Clone())
-        using (ILocalFsResourceAccessor lfsra = StreamedResourceToLocalFsAccessBridge.GetLocalFsResourceAccessor(ra))
+        if (!(mediaItemAccessor is IFileSystemResourceAccessor))
+          return false;
+        using (IFileSystemResourceAccessor fsra = (IFileSystemResourceAccessor) mediaItemAccessor.Clone())
+        using (ILocalFsResourceAccessor lfsra = StreamedResourceToLocalFsAccessBridge.GetLocalFsResourceAccessor(fsra))
         {
           string localFsPath = lfsra.LocalFileSystemPath;
           return ExtractSeriesData(localFsPath, extractedAspectData);

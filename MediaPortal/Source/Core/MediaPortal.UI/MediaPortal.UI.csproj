@@ -68,6 +68,7 @@
     <Compile Include="..\MediaPortal.Common\VersionInfo\VersionInfo.cs">
       <Link>Properties\VersionInfo.cs</Link>
     </Compile>
+    <Compile Include="Control\InputManager\IClipboardManager.cs" />
     <Compile Include="PluginItemBuilders\AdditionalPluginItemBuilders.cs" />
     <Compile Include="PluginItemBuilders\BackgroundBuilder.cs" />
     <Compile Include="PluginItemBuilders\StaticBackgroundManager.cs" />
@@ -76,6 +77,7 @@
     <Compile Include="Presentation\Actions\KeyAction.cs" />
     <Compile Include="Presentation\Players\ISpectrumPlayer.cs" />
     <Compile Include="Presentation\Players\ITitlePlayer.cs" />
+    <Compile Include="Presentation\Screens\IVideoPlayerSynchronizationStrategy.cs" />
     <Compile Include="Presentation\Utilities\PathBrowserCloseWatcher.cs" />
     <Compile Include="Presentation\Utilities\PathBrowserMessaging.cs" />
     <Compile Include="Presentation\Utilities\IPathBrowser.cs" />
@@ -114,7 +116,7 @@
     <Compile Include="Presentation\Players\IUIContributorPlayer.cs" />
     <Compile Include="Presentation\Players\IChapterPlayer.cs" />
     <Compile Include="Presentation\Players\PlayerContextManagerMessaging.cs" />
-    <Compile Include="Presentation\Players\PlayerManagerConsts.cs" />
+    <Compile Include="Presentation\Players\PlayerContextIndex.cs" />
     <Compile Include="Presentation\Players\PlayerManagerMessaging.cs" />
     <Compile Include="Presentation\Players\PlaylistMessaging.cs" />
     <Compile Include="Presentation\Screens\DialogCloseWatcher.cs" />
@@ -159,7 +161,7 @@
     <Compile Include="Services\Players\Builders\PlayerBuilder.cs" />
     <Compile Include="Services\Players\PCMOpenPlayerStrategy\PreservePiP.cs" />
     <Compile Include="Services\Players\PCMOpenPlayerStrategy\Default.cs" />
-    <Compile Include="Services\Players\IOpenPlayerStrategy.cs" />
+    <Compile Include="Presentation\Players\IOpenPlayerStrategy.cs" />
     <Compile Include="Services\Players\PlayerContext.cs" />
     <Compile Include="Services\Players\PlayerContextManager.cs" />
     <Compile Include="Services\Players\PlayerManager.cs" />
@@ -167,6 +169,8 @@
     <Compile Include="Services\Players\Playlist.cs" />
     <Compile Include="Services\Players\Settings\PlayerContextManagerSettings.cs" />
     <Compile Include="Services\Players\Settings\PlayerManagerSettings.cs" />
+    <Compile Include="Services\Players\VideoPlayerSynchronizationStrategies\BaseVideoPlayerSynchronizationStrategy.cs" />
+    <Compile Include="Services\Players\VideoPlayerSynchronizationStrategies\SynchronizeToPrimaryPlayer.cs" />
     <Compile Include="Services\RemovableMedia\DeviceVolumeMonitor.cs" />
     <Compile Include="Services\RemovableMedia\RemovableMediaTracker.cs" />
     <Compile Include="Services\RemovableMedia\Settings\RemovableMediaTrackerSettings.cs" />
@@ -183,6 +187,7 @@
     <Compile Include="Services\Shares\LocalSharesManagement.cs" />
     <Compile Include="Presentation\UiNotifications\DefaultNotification.cs" />
     <Compile Include="Services\UiNotifications\NotificationService.cs" />
+    <Compile Include="Services\Workflow\ShortcutResourcesLoader.cs" />
     <Compile Include="Services\Workflow\WorkflowStateBuilder.cs" />
     <Compile Include="Shares\SharesMessaging.cs" />
     <Compile Include="Services\Shares\Settings\SharesSettings.cs" />

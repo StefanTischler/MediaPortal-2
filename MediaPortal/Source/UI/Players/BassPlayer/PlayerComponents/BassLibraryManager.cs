@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -25,11 +25,11 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using MediaPortal.UI.Players.BassPlayer.Utils;
 using MediaPortal.Utilities;
-using Ui.Players.BassPlayer.Utils;
 using Un4seen.Bass;
 
-namespace Ui.Players.BassPlayer.PlayerComponents
+namespace MediaPortal.UI.Players.BassPlayer.PlayerComponents
 {
   /// <summary>
   /// Manages the Bass audio library and its plugins.
@@ -40,7 +40,7 @@ namespace Ui.Players.BassPlayer.PlayerComponents
 
     private static readonly object _syncObj = new object();
     private static volatile BassLibraryManager _bassLibraryManager = null;
-    private readonly ICollection<int> _DecoderPluginHandles = new List<int>();
+    private readonly ICollection<int> _decoderPluginHandles = new List<int>();
 
     /// <summary>
     /// Loads and initializes the Bass library.
@@ -100,7 +100,7 @@ namespace Ui.Players.BassPlayer.PlayerComponents
       IDictionary<int, string> plugins = Bass.BASS_PluginLoadDirectory(playerPluginsDirectory);
       foreach (string pluginFile in plugins.Values)
         Log.Debug("Loaded plugin '{0}'", pluginFile);
-      CollectionUtils.AddAll(_DecoderPluginHandles, plugins.Keys);
+      CollectionUtils.AddAll(_decoderPluginHandles, plugins.Keys);
 
       if (plugins.Count == 0)
         Log.Info("No audio decoders loaded; probably already loaded.");
@@ -119,9 +119,9 @@ namespace Ui.Players.BassPlayer.PlayerComponents
         Log.Debug("BassLibraryManager.Dispose()");
 
         Log.Debug("Unloading all BASS player plugins");
-        foreach (int pluginHandle in _DecoderPluginHandles)
+        foreach (int pluginHandle in _decoderPluginHandles)
           Bass.BASS_PluginFree(pluginHandle);
-        _DecoderPluginHandles.Clear();
+        _decoderPluginHandles.Clear();
 
         // Free the NoSound device
         if (!Bass.BASS_SetDevice(BassConstants.BassNoSoundDevice))

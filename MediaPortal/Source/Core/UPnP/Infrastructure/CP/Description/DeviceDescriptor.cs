@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -201,7 +201,6 @@ namespace UPnP.Infrastructure.CP.Description
             (string.IsNullOrEmpty(deviceType) || minDeviceVersion <= 0 || (type == deviceType && version >= minDeviceVersion)))
           yield return new DeviceDescriptor(_rootDescriptor, it.Current.Clone());
       }
-      yield break;
     }
 
     /// <summary>

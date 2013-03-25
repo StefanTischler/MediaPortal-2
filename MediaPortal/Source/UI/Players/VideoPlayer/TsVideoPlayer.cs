@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -98,7 +98,7 @@ namespace MediaPortal.UI.Players.Video
     protected override void AddFileSource()
     {
       // Render the file
-      _fileSource = (IBaseFilter) new TsReader();
+      _fileSource = FilterLoader.LoadFilterFromDll("TsReader.ax", typeof(TsReader).GUID, true);
 
       ITsReader tsReader = (ITsReader) _fileSource;
       tsReader.SetRelaxedMode(1);
@@ -116,7 +116,7 @@ namespace MediaPortal.UI.Players.Video
       }
 
       IFileSourceFilter f = (IFileSourceFilter) _fileSource;
-      f.Load(_resourceAccessor.LocalFileSystemPath, null);
+      f.Load(SourcePathOrUrl, null);
 
       // Init GraphRebuilder
       _graphRebuilder = new GraphRebuilder(_graphBuilder, _fileSource, OnAfterGraphRebuild) { PlayerName = PlayerTitle };

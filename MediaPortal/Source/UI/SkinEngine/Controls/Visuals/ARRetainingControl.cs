@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -127,9 +127,9 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
       }
     }
 
-    public override void DoRender(RenderContext localRenderContext)
+    public override void RenderOverride(RenderContext localRenderContext)
     {
-      base.DoRender(localRenderContext);
+      base.RenderOverride(localRenderContext);
       FrameworkElement content = Content;
       if (content != null)
         content.Render(localRenderContext);

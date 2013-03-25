@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -370,8 +370,9 @@ namespace MediaPortal.UI.SkinEngine.Controls.Panels
             }
 
             if (spaceLeft > 0)
-            { // We need to correct the last scroll index
-              while (_actualLastVisibleLineIndex < numVisibleChildren - 1)
+            { // Correct the last scroll index to fill the available space
+              int maxArrangedLine = _arrangedLines.Count - 1;
+              while (_actualLastVisibleLineIndex < maxArrangedLine)
               {
                 LineMeasurement line = _arrangedLines[_actualLastVisibleLineIndex + 1];
                 spaceLeft -= line.TotalExtendsInNonOrientationDirection;
@@ -395,7 +396,7 @@ namespace MediaPortal.UI.SkinEngine.Controls.Panels
             }
 
             if (spaceLeft > 0)
-            { // We need to correct the first scroll index
+            { // Correct the first scroll index to fill the available space
               while (_actualFirstVisibleLineIndex > 0)
               {
                 LineMeasurement line = _arrangedLines[_actualFirstVisibleLineIndex - 1];

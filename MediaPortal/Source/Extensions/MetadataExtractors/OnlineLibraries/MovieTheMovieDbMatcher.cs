@@ -1,7 +1,7 @@
-﻿#region Copyright (C) 2007-2012 Team MediaPortal
+﻿#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -53,6 +53,9 @@ namespace MediaPortal.Extensions.OnlineLibraries
 
     public static string CACHE_PATH = ServiceRegistration.Get<IPathManager>().GetPath(@"<DATA>\TheMovieDB\");
     protected static string _matchesSettingsFile = Path.Combine(CACHE_PATH, "Matches.xml");
+    protected static string _collectionMatchesFile = Path.Combine(CACHE_PATH, "CollectionMatches.xml");
+
+    readonly MatchStorage<MovieCollectionMatch, int> _collectionStorage = new MatchStorage<MovieCollectionMatch, int>(_collectionMatchesFile);
 
     protected override string MatchesSettingsFile
     {
@@ -127,6 +130,13 @@ namespace MediaPortal.Extensions.OnlineLibraries
             if (year > 0)
               movieInfo.Year = year;
           }
+
+          if (movieDetails.Collection != null &&
+            movieDetails.Collection.Id > 0)
+          {
+            movieInfo.CollectionMovieDbId = movieDetails.Collection.Id;
+            movieInfo.CollectionName = movieDetails.Collection.Name;
+          }
         }
 
         if (movieDbId > 0)
@@ -136,7 +146,7 @@ namespace MediaPortal.Extensions.OnlineLibraries
       return false;
     }
 
-    private string FindBestMatchingLanguage(MovieInfo movieInfo)
+    private static string FindBestMatchingLanguage(MovieInfo movieInfo)
     {
       CultureInfo mpLocal = ServiceRegistration.Get<ILocalization>().CurrentCulture;
       // If we don't have movie languages available, or the MP2 setting language is available, prefer it.
@@ -164,11 +174,18 @@ namespace MediaPortal.Extensions.OnlineLibraries
           MovieDBName = movieDetails.Title
         };
         // Save cache
-        SaveNewMatch(movieDetails.Title, onlineMatch);
+        _storage.SaveNewMatch(movieDetails.Title, onlineMatch);
         return true;
       }
       movieDetails = null;
       return false;
+    }
+
+    public bool TryGetCollectionId(string collectionName, out int collectionId)
+    {
+      MovieCollectionMatch match = _collectionStorage.LoadMatches().Find(m => m.ItemName == collectionName);
+      collectionId = match == null ? 0 : match.Id;
+      return collectionId != 0;
     }
 
     public bool TryGetMovieDbId(string movieName, out int movieDbId)
@@ -193,7 +210,7 @@ namespace MediaPortal.Extensions.OnlineLibraries
           return true;
 
         // Load cache or create new list
-        List<MovieMatch> matches = LoadMatches();
+        List<MovieMatch> matches = _storage.LoadMatches();
 
         // Init empty
         movieDetail = null;
@@ -228,14 +245,25 @@ namespace MediaPortal.Extensions.OnlineLibraries
                 MovieDBName = movieDetail.Title
               };
 
+            // Save collection mapping, if available
+            if (movieDetail.Collection != null)
+            {
+              MovieCollectionMatch collectionMatch = new MovieCollectionMatch
+                {
+                  Id = movieDetail.Collection.Id,
+                  ItemName = movieDetail.Collection.Name
+                };
+              _collectionStorage.SaveNewMatch(movieDetail.Collection.Name, collectionMatch);
+            }
+
             // Save cache
-            SaveNewMatch(movieName, onlineMatch);
+            _storage.SaveNewMatch(movieName, onlineMatch);
           }
           return true;
         }
         ServiceRegistration.Get<ILogger>().Debug("MovieTheMovieDbMatcher: No unique match found for \"{0}\"", movieName);
         // Also save "non matches" to avoid retrying
-        SaveNewMatch(movieName, new MovieMatch { ItemName = movieName });
+        _storage.SaveNewMatch(movieName, new MovieMatch { ItemName = movieName });
         return false;
       }
       catch (Exception ex)
@@ -252,6 +280,9 @@ namespace MediaPortal.Extensions.OnlineLibraries
 
     protected override bool Init()
     {
+      if (!base.Init())
+        return false;
+
       if (_movieDb != null)
         return true;
 
@@ -262,11 +293,6 @@ namespace MediaPortal.Extensions.OnlineLibraries
       return _movieDb.Init();
     }
 
-    protected override List<MovieMatch> FindNameMatch(List<MovieMatch> matches, string name)
-    {
-      return matches.FindAll(m => m.ItemName == name);
-    }
-
     protected override void DownloadFanArt(int movieDbId)
     {
       try
@@ -275,6 +301,11 @@ namespace MediaPortal.Extensions.OnlineLibraries
 
         if (!Init())
           return;
+
+        // If movie belongs to a collection, also download collection poster and fanart
+        Movie movie;
+        if (_movieDb.GetMovie(movieDbId, out movie) && movie.Collection != null)
+          SaveBanners(movie.Collection);
 
         ImageCollection imageCollection;
         if (!_movieDb.GetMovieFanArt(movieDbId, out imageCollection))
@@ -294,6 +325,12 @@ namespace MediaPortal.Extensions.OnlineLibraries
       {
         ServiceRegistration.Get<ILogger>().Debug("MovieTheMovieDbMatcher: Exception downloading FanArt for ID {0}", ex, movieDbId);
       }
+    }
+
+    private void SaveBanners(MovieCollection movieCollection)
+    {
+      bool result = _movieDb.DownloadImages(movieCollection);
+      ServiceRegistration.Get<ILogger>().Debug("MovieTheMovieDbMatcher Download Collection: Saved {0} {1}", movieCollection.Name, result);
     }
 
     private int SaveBanners(IEnumerable<MovieImage> banners, string category)

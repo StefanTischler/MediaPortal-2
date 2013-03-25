@@ -1,7 +1,7 @@
-﻿#region Copyright (C) 2007-2012 Team MediaPortal
+﻿#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -22,10 +22,10 @@
 
 #endregion
 
-using MediaPortal.Plugins.SlimTvClient.Interfaces.Extensions;
-using MediaPortal.Plugins.SlimTvClient.Interfaces.Items;
+using MediaPortal.Plugins.SlimTv.Interfaces.Extensions;
+using MediaPortal.Plugins.SlimTv.Interfaces.Items;
 
-namespace MediaPortal.Plugins.SlimTvClient.Extensions
+namespace MediaPortal.Plugins.SlimTv.Client.Extensions
 {
   /// <summary>
   /// Example class for definition of <see cref="IProgramAction"/>s.

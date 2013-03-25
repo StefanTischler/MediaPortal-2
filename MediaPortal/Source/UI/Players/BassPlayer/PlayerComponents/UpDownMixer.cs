@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -26,36 +26,22 @@
 
 using System;
 
-namespace Ui.Players.BassPlayer.PlayerComponents
+namespace MediaPortal.UI.Players.BassPlayer.PlayerComponents
 {
   /// <summary>
   /// Performs upmixing and downmixing.
   /// </summary>
   public class UpDownMixer : IDisposable
   {
-    #region Static members
-
-    /// <summary>
-    /// Creates and initializes a new instance.
-    /// </summary>
-    /// <param name="controller">Containing controller instance.</param>
-    public UpDownMixer(Controller controller)
-    {
-      _controller = controller;
-    }
-
-    #endregion
-
     #region Fields
 
-    private Controller _controller;
-    private BassStream _InputStream;
-    private BassStream _OutputStream;
-    private bool _Initialized;
+    private BassStream _inputStream;
+    private BassStream _outputStream;
+    private bool _initialized;
 
     #endregion
 
-    #region IDisposable Members
+    #region IDisposable implementation
 
     public void Dispose()
     {
@@ -70,7 +56,7 @@ namespace Ui.Players.BassPlayer.PlayerComponents
     /// </summary>
     public BassStream InputStream
     {
-      get { return _InputStream; }
+      get { return _inputStream; }
     }
 
     /// <summary>
@@ -78,7 +64,7 @@ namespace Ui.Players.BassPlayer.PlayerComponents
     /// </summary>
     public BassStream OutputStream
     {
-      get { return _OutputStream; }
+      get { return _outputStream; }
     }
 
     /// <summary>
@@ -88,9 +74,9 @@ namespace Ui.Players.BassPlayer.PlayerComponents
     public void SetInputStream(BassStream stream)
     {
       ResetInputStream();
-      _InputStream = stream;
-      _OutputStream = stream;
-      _Initialized = true;
+      _inputStream = stream;
+      _outputStream = stream;
+      _initialized = true;
     }
 
     /// <summary>
@@ -98,15 +84,15 @@ namespace Ui.Players.BassPlayer.PlayerComponents
     /// </summary>
     public void ResetInputStream()
     {
-      if (_Initialized)
+      if (_initialized)
       {
-        _Initialized = false;
+        _initialized = false;
 
         // Dispose has to be done if we have our own OutputStream
         //_OutputStream.Dispose();
-        _OutputStream = null;
+        _outputStream = null;
 
-        _InputStream = null;
+        _inputStream = null;
       }
     }
 

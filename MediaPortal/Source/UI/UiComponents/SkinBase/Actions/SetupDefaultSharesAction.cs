@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -30,7 +30,6 @@ using MediaPortal.Common.Localization;
 using MediaPortal.UI.Presentation.Workflow;
 using MediaPortal.UI.ServerCommunication;
 using MediaPortal.UI.Shares;
-using MediaPortal.UiComponents.SkinBase.Models;
 
 namespace MediaPortal.UiComponents.SkinBase.Actions
 {
@@ -106,7 +105,7 @@ namespace MediaPortal.UiComponents.SkinBase.Actions
         IServerConnectionManager serverConnectionManager = ServiceRegistration.Get<IServerConnectionManager>();
         IContentDirectory contentDirectory = serverConnectionManager.ContentDirectory;
         SystemName homeServerSystem = serverConnectionManager.LastHomeServerSystem;
-        bool localHomeServer = homeServerSystem == null ? false : homeServerSystem.IsLocalSystem();
+        bool localHomeServer = homeServerSystem != null && homeServerSystem.IsLocalSystem();
         bool homeServerConncted = contentDirectory != null;
         ILocalSharesManagement localSharesManagement = ServiceRegistration.Get<ILocalSharesManagement>();
         return localHomeServer ? (homeServerConncted && contentDirectory.GetShares(null, SharesFilter.All).Count == 0) :
@@ -151,11 +150,10 @@ namespace MediaPortal.UiComponents.SkinBase.Actions
 
     public void Execute()
     {
-      IWorkflowManager workflowManager = ServiceRegistration.Get<IWorkflowManager>();
       IServerConnectionManager serverConnectionManager = ServiceRegistration.Get<IServerConnectionManager>();
       IContentDirectory contentDirectory = serverConnectionManager.ContentDirectory;
       SystemName homeServerSystem = serverConnectionManager.LastHomeServerSystem;
-      bool localHomeServer = homeServerSystem == null ? false : homeServerSystem.IsLocalSystem();
+      bool localHomeServer = homeServerSystem != null && homeServerSystem.IsLocalSystem();
       bool homeServerConncted = contentDirectory != null;
 
       ILocalSharesManagement localSharesManagement = ServiceRegistration.Get<ILocalSharesManagement>();
@@ -163,20 +161,15 @@ namespace MediaPortal.UiComponents.SkinBase.Actions
       {
         if (homeServerConncted && contentDirectory.GetShares(null, SharesFilter.All).Count == 0)
           contentDirectory.SetupDefaultServerShares();
-        // Update of shares lists is only necessary in case the shares are managed by our home server because
-        // in this case, we don't get a notification about the change in the set of shares.
-        // Maybe we should add such a notification later...
-        SharesConfigModel model = workflowManager.GetModel(SharesConfigModel.MODEL_ID_SHARESCONFIG) as SharesConfigModel;
-        if (model != null)
-          model.UpdateSharesLists_NoLock(false);
+        FireStateChanged();
       }
       else
       {
         if (localSharesManagement.Shares.Count == 0)
           localSharesManagement.SetupDefaultShares();
-        // The shares config model listens to update events from the local shares management, so we don't need to
-        // trigger an update of the shares lists here
       }
+      // The shares config model listens to share update events from both the local shares management and the home server,
+      // so we don't need to trigger an update of the shares lists here
     }
 
     #endregion

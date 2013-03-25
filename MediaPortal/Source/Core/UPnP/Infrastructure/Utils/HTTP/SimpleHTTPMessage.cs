@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -121,13 +121,11 @@ namespace UPnP.Infrastructure.Utils.HTTP
       byte[] headerData = UPnPConsts.UTF8_NO_BOM.GetBytes(header);
       if (messageBody == null || messageBody.Length == 0)
         return headerData;
-      else
-      {
-        byte[] result = new byte[headerData.Length + messageBody.Length];
-        Array.Copy(headerData, result, headerData.Length);
-        Array.Copy(messageBody, 0, result, 0, headerData.Length);
-        return result;
-      }
+
+      byte[] result = new byte[headerData.Length + messageBody.Length];
+      Array.Copy(headerData, result, headerData.Length);
+      Array.Copy(messageBody, 0, result, 0, headerData.Length);
+      return result;
     }
 
     protected static void IncreaseBuffer<T>(T[] buffer, uint increment)

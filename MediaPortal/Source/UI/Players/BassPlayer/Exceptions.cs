@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -25,7 +25,7 @@
 using System;
 using Un4seen.Bass;
 
-namespace Ui.Players.BassPlayer
+namespace MediaPortal.UI.Players.BassPlayer
 {
   /// <summary>
   /// Bass Player exception.

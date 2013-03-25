@@ -1,7 +1,7 @@
-﻿#region Copyright (C) 2007-2012 Team MediaPortal
+﻿#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -28,9 +28,9 @@ using MediaPortal.Common;
 using MediaPortal.Common.MediaManagement;
 using MediaPortal.Common.MediaManagement.DefaultItemAspects;
 using MediaPortal.Common.SystemResolver;
-using MediaPortal.Plugins.SlimTvClient.Interfaces.Items;
+using MediaPortal.Plugins.SlimTv.Interfaces.Items;
 
-namespace MediaPortal.Plugins.SlimTvClient.Interfaces.ResourceProvider
+namespace MediaPortal.Plugins.SlimTv.Interfaces.ResourceProvider
 {
   public class SlimTvMediaItemBuilder
   {
@@ -42,7 +42,24 @@ namespace MediaPortal.Plugins.SlimTvClient.Interfaces.ResourceProvider
     /// <param name="path">Path or URL of the stream</param>
     /// <param name="channel"></param>
     /// <returns></returns>
-    public static LiveTvMediaItem CreateMediaItem(int slotIndex, string path, IChannel channel)
+    public static LiveTvMediaItem.LiveTvMediaItem CreateMediaItem(int slotIndex, string path, IChannel channel)
+    {
+      return CreateMediaItem(slotIndex, path, channel, true);
+    }
+
+    /// <summary>
+    /// Creates a MediaItem that represents a Radio stream. 
+    /// </summary>
+    /// <param name="slotIndex">Index of the slot (0/1)</param>
+    /// <param name="path">Path or URL of the stream</param>
+    /// <param name="channel"></param>
+    /// <returns></returns>
+    public static LiveTvMediaItem.LiveTvMediaItem CreateRadioMediaItem(int slotIndex, string path, IChannel channel)
+    {
+      return CreateMediaItem(slotIndex, path, channel, false);
+    }
+
+    public static LiveTvMediaItem.LiveTvMediaItem CreateMediaItem(int slotIndex, string path, IChannel channel, bool isTv)
     {
       if (!String.IsNullOrEmpty(path))
       {
@@ -54,21 +71,34 @@ namespace MediaPortal.Plugins.SlimTvClient.Interfaces.ResourceProvider
         SlimTvResourceAccessor resourceAccessor = new SlimTvResourceAccessor(slotIndex, path);
         aspects[ProviderResourceAspect.ASPECT_ID] = providerResourceAspect = new MediaItemAspect(ProviderResourceAspect.Metadata);
         aspects[MediaAspect.ASPECT_ID] = mediaAspect = new MediaItemAspect(MediaAspect.Metadata);
-        // VideoAspect needs to be included to associate VideoPlayer later!
-        aspects[VideoAspect.ASPECT_ID] = new MediaItemAspect(VideoAspect.Metadata);
         providerResourceAspect.SetAttribute(ProviderResourceAspect.ATTR_SYSTEM_ID, systemResolver.LocalSystemId);
 
         String raPath = resourceAccessor.CanonicalLocalResourcePath.Serialize();
         providerResourceAspect.SetAttribute(ProviderResourceAspect.ATTR_RESOURCE_ACCESSOR_PATH, raPath);
 
-        mediaAspect.SetAttribute(MediaAspect.ATTR_TITLE, "Live TV");
-        mediaAspect.SetAttribute(MediaAspect.ATTR_MIME_TYPE, "video/livetv"); // Custom mimetype for LiveTv
+        string title;
+        string mimeType;
+        if (isTv)
+        {
+          // VideoAspect needs to be included to associate VideoPlayer later!
+          aspects[VideoAspect.ASPECT_ID] = new MediaItemAspect(VideoAspect.Metadata);
+          title = "Live TV";
+          mimeType = LiveTvMediaItem.LiveTvMediaItem.MIME_TYPE_TV;
+        }
+        else
+        {
+          // AudioAspect needs to be included to associate an AudioPlayer later!
+          aspects[AudioAspect.ASPECT_ID] = new MediaItemAspect(AudioAspect.Metadata);
+          title = "Live Radio";
+          mimeType = LiveTvMediaItem.LiveTvMediaItem.MIME_TYPE_RADIO;
+        }
+        mediaAspect.SetAttribute(MediaAspect.ATTR_TITLE, title);
+        mediaAspect.SetAttribute(MediaAspect.ATTR_MIME_TYPE, mimeType); // Custom mimetype for LiveTv or Radio
+        LiveTvMediaItem.LiveTvMediaItem tvStream = new LiveTvMediaItem.LiveTvMediaItem(new Guid(), aspects);
 
-        LiveTvMediaItem tvStream = new LiveTvMediaItem(new Guid(), aspects);
-
-        tvStream.AdditionalProperties[LiveTvMediaItem.SLOT_INDEX] = slotIndex;
-        tvStream.AdditionalProperties[LiveTvMediaItem.CHANNEL] = channel;
-        tvStream.AdditionalProperties[LiveTvMediaItem.TUNING_TIME] = DateTime.Now;
+        tvStream.AdditionalProperties[LiveTvMediaItem.LiveTvMediaItem.SLOT_INDEX] = slotIndex;
+        tvStream.AdditionalProperties[LiveTvMediaItem.LiveTvMediaItem.CHANNEL] = channel;
+        tvStream.AdditionalProperties[LiveTvMediaItem.LiveTvMediaItem.TUNING_TIME] = DateTime.Now;
         return tvStream;
       }
       return null;

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -25,11 +25,11 @@
 using System;
 using System.IO;
 using MediaPortal.Common.ResourceAccess;
-using Ui.Players.BassPlayer.Interfaces;
-using Ui.Players.BassPlayer.Utils;
+using MediaPortal.UI.Players.BassPlayer.Interfaces;
+using MediaPortal.UI.Players.BassPlayer.Utils;
 using Un4seen.Bass;
 
-namespace Ui.Players.BassPlayer.InputSources
+namespace MediaPortal.UI.Players.BassPlayer.InputSources
 {
   /// <summary>
   /// Represents a MOD file inputsource.
@@ -43,8 +43,9 @@ namespace Ui.Players.BassPlayer.InputSources
     /// </summary>
     /// <param name="resourceAccessor">The resource accessor to the media item to be handled by the instance.</param>
     /// <returns>The new instance.</returns>
-    public static BassMODFileInputSource Create(IResourceAccessor resourceAccessor)
+    public static BassMODFileInputSource Create(IFileSystemResourceAccessor resourceAccessor)
     {
+      resourceAccessor.PrepareStreamAccess();
       BassMODFileInputSource inputSource = new BassMODFileInputSource(resourceAccessor);
       inputSource.Initialize();
       return inputSource;
@@ -54,7 +55,7 @@ namespace Ui.Players.BassPlayer.InputSources
 
     #region Fields
 
-    private BassStream _BassStream;
+    private BassStream _bassStream;
 
     #endregion
 
@@ -67,12 +68,12 @@ namespace Ui.Players.BassPlayer.InputSources
 
     public BassStream OutputStream
     {
-      get { return _BassStream; }
+      get { return _bassStream; }
     }
 
     public TimeSpan Length
     {
-      get { return _BassStream.Length; }
+      get { return _bassStream.Length; }
     }
 
     #endregion
@@ -82,8 +83,8 @@ namespace Ui.Players.BassPlayer.InputSources
     public override void Dispose()
     {
       base.Dispose();
-      if (_BassStream != null)
-        _BassStream.Dispose();
+      if (_bassStream != null)
+        _bassStream.Dispose();
       // Bass.BASS_MusicFree is not necessary to be called here because of flag BASS_MUSIC_AUTOFREE
     }
 
@@ -95,7 +96,7 @@ namespace Ui.Players.BassPlayer.InputSources
 
     #region Private members
 
-    private BassMODFileInputSource(IResourceAccessor resourceAccessor) : base(resourceAccessor) { }
+    private BassMODFileInputSource(IFileSystemResourceAccessor resourceAccessor) : base(resourceAccessor) { }
 
     /// <summary>
     /// Initializes a new instance.
@@ -124,7 +125,7 @@ namespace Ui.Players.BassPlayer.InputSources
       if (handle == BassConstants.BassInvalidHandle)
         throw new BassLibraryException("BASS_MusicLoad");
 
-      _BassStream = BassStream.Create(handle);
+      _bassStream = BassStream.Create(handle);
     }
 
     #endregion

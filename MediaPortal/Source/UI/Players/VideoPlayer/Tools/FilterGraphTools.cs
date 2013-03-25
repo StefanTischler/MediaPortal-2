@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -20,7 +20,7 @@
     along with MediaPortal 2. If not, see <http://www.gnu.org/licenses/>.
 */
 
-    #endregion
+#endregion
 
 /****************************************************************************
 While the underlying libraries are covered by LGPL, this sample is released 
@@ -1142,7 +1142,7 @@ namespace MediaPortal.UI.Players.Video.Tools
     /// <param name="filterToRelease">any COM object to release</param>
     public static bool TryRelease<TE>(ref TE filterToRelease) where TE : class
     {
-      return TryRelease<TE>(ref filterToRelease, false);
+      return TryRelease(ref filterToRelease, false);
     }
 
     /// <summary>

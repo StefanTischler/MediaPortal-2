@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -65,7 +65,7 @@ namespace MediaPortal.Extensions.ResourceProviders.IsoResourceProvider
 
     public IsoResourceProvider()
     {
-      _metadata = new ResourceProviderMetadata(ISO_RESOURCE_PROVIDER_ID, RES_RESOURCE_PROVIDER_NAME, RES_RESOURCE_PROVIDER_DESCRIPTION, false);
+      _metadata = new ResourceProviderMetadata(ISO_RESOURCE_PROVIDER_ID, RES_RESOURCE_PROVIDER_NAME, RES_RESOURCE_PROVIDER_DESCRIPTION, false, false);
     }
 
     #endregion
@@ -82,7 +82,7 @@ namespace MediaPortal.Extensions.ResourceProviders.IsoResourceProvider
       }
     }
 
-    internal IsoResourceProxy CreateIsoResourceProxy(string key, IResourceAccessor isoFileResourceAccessor)
+    internal IsoResourceProxy CreateIsoResourceProxy(string key, IFileSystemResourceAccessor isoFileResourceAccessor)
     {
       IsoResourceProxy result = new IsoResourceProxy(key, isoFileResourceAccessor);
       result.Orphaned += OnIsoResourceProxyOrphaned;
@@ -100,7 +100,7 @@ namespace MediaPortal.Extensions.ResourceProviders.IsoResourceProvider
 
     #region IChainedResourceProvider implementation
 
-    public bool TryChainUp(IResourceAccessor potentialBaseResourceAccessor, string path, out IResourceAccessor resultResourceAccessor)
+    public bool TryChainUp(IFileSystemResourceAccessor potentialBaseResourceAccessor, string path, out IFileSystemResourceAccessor resultResourceAccessor)
     {
       resultResourceAccessor = null;
       string resourcePathName = potentialBaseResourceAccessor.ResourcePathName;
@@ -127,7 +127,7 @@ namespace MediaPortal.Extensions.ResourceProviders.IsoResourceProvider
       }
     }
 
-    public bool IsResource(IResourceAccessor baseResourceAccessor, string path)
+    public bool IsResource(IFileSystemResourceAccessor baseResourceAccessor, string path)
     {
       string resourceName = baseResourceAccessor.ResourceName;
       if (string.IsNullOrEmpty(resourceName) || !baseResourceAccessor.IsFile)

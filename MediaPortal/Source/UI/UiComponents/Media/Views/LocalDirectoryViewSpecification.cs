@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -140,8 +140,14 @@ namespace MediaPortal.UiComponents.Media.Views
       }
       using (baseResourceAccessor)
       {
+        IFileSystemResourceAccessor fsra = baseResourceAccessor as IFileSystemResourceAccessor;
+        if (fsra == null)
+        {
+          ServiceRegistration.Get<ILogger>().Warn("LocalDirectoryViewSpecification.ReLoadItemsAndSubViewSpecifications: Cannot access local view path '{0}' - no local file system resource", _viewPath);
+          return;
+        }
         // Add all items at the specified path
-        ICollection<IFileSystemResourceAccessor> files = FileSystemResourceNavigator.GetFiles(baseResourceAccessor, false);
+        ICollection<IFileSystemResourceAccessor> files = FileSystemResourceNavigator.GetFiles(fsra, false);
         if (files != null)
           foreach (IFileSystemResourceAccessor childAccessor in files)
             using (childAccessor)
@@ -155,7 +161,7 @@ namespace MediaPortal.UiComponents.Media.Views
               {
                 ServiceRegistration.Get<ILogger>().Warn("LocalDirectoryViewSpecification: Error creating local media item for '{0}'", e, childAccessor);
               }
-        ICollection<IFileSystemResourceAccessor> directories = FileSystemResourceNavigator.GetChildDirectories(baseResourceAccessor, false);
+        ICollection<IFileSystemResourceAccessor> directories = FileSystemResourceNavigator.GetChildDirectories(fsra, false);
         if (directories != null)
           foreach (IFileSystemResourceAccessor childAccessor in directories)
             using (childAccessor)

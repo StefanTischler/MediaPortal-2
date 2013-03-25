@@ -1,7 +1,7 @@
-#region Copyright (C) 2008 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2008 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -542,11 +542,11 @@ namespace MediaPortal.Common.TaskScheduler
           {
             nextDate = new DateTime(_lastRun.Year, _lastRun.Month, _lastRun.Day, 0, 0, 0);
             if (nowDay == day)
-              nextDate.AddDays(7);
+              nextDate = nextDate.AddDays(7);
             else if (nowDay < day)
-              nextDate.AddDays(day - nowDay);
+              nextDate = nextDate.AddDays(day - nowDay);
             else
-              nextDate.AddDays(7 - (nowDay - day));
+              nextDate = nextDate.AddDays(7 - (nowDay - day));
           }
         }
         return nextDate;

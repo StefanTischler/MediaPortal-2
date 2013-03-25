@@ -1,7 +1,7 @@
-﻿#region Copyright (C) 2007-2012 Team MediaPortal
+﻿#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -30,6 +30,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using MediaPortal.Common;
 using MediaPortal.Common.PathManager;
+using MediaPortal.Utilities.Graphics;
 
 namespace MediaPortal.Extensions.UserServices.FanArtService.Interfaces
 {

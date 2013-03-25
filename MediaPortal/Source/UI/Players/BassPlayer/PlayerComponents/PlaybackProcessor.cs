@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -23,11 +23,11 @@
 #endregion
 
 using System;
-using Ui.Players.BassPlayer.InputSources;
-using Ui.Players.BassPlayer.Interfaces;
-using Ui.Players.BassPlayer.Utils;
+using MediaPortal.UI.Players.BassPlayer.InputSources;
+using MediaPortal.UI.Players.BassPlayer.Interfaces;
+using MediaPortal.UI.Players.BassPlayer.Utils;
 
-namespace Ui.Players.BassPlayer.PlayerComponents
+namespace MediaPortal.UI.Players.BassPlayer.PlayerComponents
 {
   /// <summary>
   /// Management class for playback sessions and available input sources.

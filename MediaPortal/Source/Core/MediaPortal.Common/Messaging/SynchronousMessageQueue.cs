@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -38,7 +38,7 @@ namespace MediaPortal.Common.Messaging
     /// <summary>
     /// Creates a new synchronous message queue.
     /// </summary>
-    /// <param name="owner">Owner of this queue. Used for setting the queue's default name.<param>
+    /// <param name="owner">Owner of this queue. Used for setting the queue's default name.</param>
     /// <param name="messageChannels">Message channels this message queue will be registered at the message broker.</param>
     public SynchronousMessageQueue(object owner, string[] messageChannels) : base(messageChannels)
     {

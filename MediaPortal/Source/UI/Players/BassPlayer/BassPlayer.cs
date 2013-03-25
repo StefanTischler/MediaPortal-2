@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -27,13 +27,13 @@ using MediaPortal.Common;
 using MediaPortal.Common.Logging;
 using MediaPortal.Common.MediaManagement;
 using MediaPortal.Common.ResourceAccess;
+using MediaPortal.UI.Players.BassPlayer.Interfaces;
+using MediaPortal.UI.Players.BassPlayer.PlayerComponents;
+using MediaPortal.UI.Players.BassPlayer.Utils;
 using MediaPortal.UI.Presentation.Players;
-using Ui.Players.BassPlayer.Interfaces;
-using Ui.Players.BassPlayer.PlayerComponents;
-using Ui.Players.BassPlayer.Utils;
 using Un4seen.Bass;
 
-namespace Ui.Players.BassPlayer
+namespace MediaPortal.UI.Players.BassPlayer
 {
   /// <summary>
   /// MediaPortal 2 audio player based on the Un4seen Bass library. Supports several player interfaces of the MP2 player API.
@@ -55,14 +55,6 @@ namespace Ui.Players.BassPlayer
   /// </remarks>
   public class BassPlayer : IDisposable, ISpectrumPlayer, IMediaPlaybackControl, IPlayerEvents, IReusablePlayer
   {
-    #region Consts
-
-    public const string BASS_PLAYER_ID_STR = "2A6ADBE3-20B3-4fa5-84D4-B0CBCF032722";
-
-    public static readonly Guid BASS_PLAYER_ID = new Guid(BASS_PLAYER_ID_STR);
-
-    #endregion
-
     #region Protected fields
 
     protected readonly object _syncObj = new object();
@@ -229,11 +221,6 @@ namespace Ui.Players.BassPlayer
     #endregion
 
     #region IPlayer implementation
-
-    public Guid PlayerId
-    {
-      get { return BASS_PLAYER_ID; }
-    }
 
     public string Name
     {

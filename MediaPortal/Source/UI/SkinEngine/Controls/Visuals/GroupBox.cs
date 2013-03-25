@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -193,9 +193,9 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
           headerLabelSize.Width + HEADER_INSET_SPACE * 2);
     }
 
-    public override void DoRender(RenderContext localRenderContext)
+    public override void RenderOverride(RenderContext localRenderContext)
     {
-      base.DoRender(localRenderContext);
+      base.RenderOverride(localRenderContext);
       _headerLabel.Render(localRenderContext);
     }
   }

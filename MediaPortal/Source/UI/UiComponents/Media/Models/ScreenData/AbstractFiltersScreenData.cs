@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -52,9 +52,8 @@ namespace MediaPortal.UiComponents.Media.Models.ScreenData
     /// Creates a new instance of <see cref="AbstractFiltersScreenData&lt;T&gt;"/>.
     /// </summary>
     /// <param name="screen">The screen associated with this screen data.</param>
-    /// <param name="menuItemLabel">Laben which will be shown in the menu to switch to this screen data.</param>
-    /// <param name="navbarSubViewNavigationDisplayLabel">Display label to be shown in the navbar when we
-    /// navigate to a sub view.</param>
+    /// <param name="menuItemLabel">Label which will be shown in the menu to switch to this screen data.</param>
+    /// <param name="navbarSubViewNavigationDisplayLabel">Display label to be shown in the navbar when we navigate to a sub view.</param>
     /// <param name="filterCriterion">Specifies the filter criterion which provides the filter entries for this screen.</param>
     protected AbstractFiltersScreenData(string screen, string menuItemLabel, string navbarSubViewNavigationDisplayLabel,
         MLFilterCriterion filterCriterion)
@@ -137,12 +136,10 @@ namespace MediaPortal.UiComponents.Media.Models.ScreenData
         {
           Display_ListBeingBuilt();
           bool grouping = true;
-          int numItems = 0;
           ICollection<FilterValue> fv = _clusterFilter == null ?
               _filterCriterion.GroupValues(currentVS.NecessaryMIATypeIds, _clusterFilter, currentVS.Filter) : null;
-          if (fv != null)
-            numItems = fv.Select(filterValue => filterValue.NumItems).Select(num => num.HasValue ? num.Value : 0).Sum();
-          if (fv == null || numItems <= Consts.MAX_NUM_ITEMS_VISIBLE)
+          
+          if (fv == null || fv.Count <= Consts.MAX_NUM_ITEMS_VISIBLE)
           {
             fv = _filterCriterion.GetAvailableValues(currentVS.NecessaryMIATypeIds, _clusterFilter, currentVS.Filter);
             grouping = false;

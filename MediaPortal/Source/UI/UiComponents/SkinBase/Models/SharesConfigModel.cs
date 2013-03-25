@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -581,18 +581,16 @@ namespace MediaPortal.UiComponents.SkinBase.Models
             new List<Share>(ServerShares.GetShares()) : new List<Share>(0);
         int numShares = localShareDescriptors.Count + serverShareDescriptors.Count;
         UpdateSharesList_NoLock(_localSharesList, localShareDescriptors, ShareOrigin.Local, numShares == 1);
-        if (IsHomeServerConnected)
-          // If our home server is not connected, don't try to update its list of shares
-          try
-          {
-            UpdateSharesList_NoLock(_serverSharesList, serverShareDescriptors, ShareOrigin.Server, numShares == 1);
-          }
-          catch (NotConnectedException)
-          {
-            _serverSharesList.Clear();
-            _serverSharesList.FireChange();
-            numShares = localShareDescriptors.Count;
-          }
+        try
+        {
+          UpdateSharesList_NoLock(_serverSharesList, serverShareDescriptors, ShareOrigin.Server, numShares == 1);
+        }
+        catch (NotConnectedException)
+        {
+          _serverSharesList.Clear();
+          _serverSharesList.FireChange();
+          numShares = localShareDescriptors.Count;
+        }
         ShowLocalShares = !IsLocalHomeServer || _localSharesList.Count > 0;
         IsSharesSelected = numShares == 1;
         bool anySharesAvailable;
@@ -702,7 +700,7 @@ namespace MediaPortal.UiComponents.SkinBase.Models
         IServerConnectionManager serverConnectionManager = ServiceRegistration.Get<IServerConnectionManager>();
         IsHomeServerConnected = serverConnectionManager.IsHomeServerConnected;
         SystemName homeServerSystem = serverConnectionManager.LastHomeServerSystem;
-        IsLocalHomeServer = homeServerSystem == null ? false : homeServerSystem.IsLocalSystem();
+        IsLocalHomeServer = homeServerSystem != null && homeServerSystem.IsLocalSystem();
         lock (_syncObj)
         {
           _enableLocalShares = !IsLocalHomeServer;

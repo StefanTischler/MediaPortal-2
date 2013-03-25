@@ -1,7 +1,7 @@
-﻿#region Copyright (C) 2007-2012 Team MediaPortal
+﻿#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -42,7 +42,8 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
 
     public override void Render(RenderContext parentRenderContext)
     {
-      if (!IsVisible || Effect == null)
+      Effect effect = Effect;
+      if (!IsVisible || effect == null)
         return;
 
       RectangleF bounds = ActualBounds;
@@ -65,8 +66,6 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
         _texture = new Texture(device, desc.Width, desc.Height, 1, Usage.RenderTarget, Format.A8R8G8B8, Pool.Default);
       }
       device.StretchRectangle(backBuffer, _texture.GetSurfaceLevel(0), TextureFilter.None);
-
-      Effect effect = Effect;
 
       UpdateEffectMask(effect, localRenderContext.OccupiedTransformedBounds, desc.Width, desc.Height, localRenderContext.ZOrder);
       if (effect.BeginRender(_texture, new RenderContext(Matrix.Identity, 1.0d, bounds, localRenderContext.ZOrder)))

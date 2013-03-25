@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -122,8 +122,7 @@ namespace MediaPortal.UiComponents.SkinBase.Actions
       IPlayerContextManager playerContextManager = ServiceRegistration.Get<IPlayerContextManager>();
       IWorkflowManager workflowManager = ServiceRegistration.Get<IWorkflowManager>();
       IPlayerContext pc = playerContextManager.CurrentPlayerContext;
-      bool visible = pc == null ? false :
-          !workflowManager.IsStateContainedInNavigationStack(pc.CurrentlyPlayingWorkflowStateId);
+      bool visible = pc != null && !workflowManager.IsStateContainedInNavigationStack(pc.CurrentlyPlayingWorkflowStateId);
       if (visible == _isVisible)
         return;
       _isVisible = visible;

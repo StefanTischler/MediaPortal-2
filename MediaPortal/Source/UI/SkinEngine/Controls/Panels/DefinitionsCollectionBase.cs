@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -56,7 +56,6 @@ namespace MediaPortal.UI.SkinEngine.Controls.Panels
       if (double.IsNaN(desiredLength))
         return;
 
-      int relativeCount = 0;
       if (cellIndex < 0 || cellIndex >= Count)
       {
         ServiceRegistration.Get<ILogger>().Warn("{0}: Invalid cell index {1}; valid range is {2}-{3}", GetType().Name, cellIndex, 0, Count-1);
@@ -74,6 +73,7 @@ namespace MediaPortal.UI.SkinEngine.Controls.Panels
         else
           cellSpan = Count-cellIndex;
       }
+      int relativeCount = 0;
       for (int i = 0; i < cellSpan; i++)
       {
         GridLength length = this[i + cellIndex].Length;
@@ -99,7 +99,20 @@ namespace MediaPortal.UI.SkinEngine.Controls.Panels
 
     public double TotalDesiredLength
     {
-      get { return this.Sum(cell => cell.Length.DesiredLength); }
+      get
+      {
+        double relativeSum = this.Sum(cell => cell.Length.IsAbsolute ? 0 : cell.Length.Value);
+        double result = 0;
+        double min = 0;
+        for (int i = 0; i < Count; i++)
+        {
+          GridLength length = this[i].Length;
+          result += length.DesiredLength;
+          if (!length.IsAbsolute)
+            min = Math.Max(min, length.DesiredLength * relativeSum / length.Value);
+        }
+        return (double.IsInfinity(min) || double.IsNaN(min)) ? result : Math.Max(result, min);
+      }
     }
 
     public void SetAvailableSize(double totalLength)

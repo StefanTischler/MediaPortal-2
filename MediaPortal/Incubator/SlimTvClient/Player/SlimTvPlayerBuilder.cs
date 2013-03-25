@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -27,9 +27,11 @@ using MediaPortal.Common;
 using MediaPortal.Common.Logging;
 using MediaPortal.Common.MediaManagement;
 using MediaPortal.Common.ResourceAccess;
+using MediaPortal.Plugins.SlimTv.Interfaces.LiveTvMediaItem;
+using MediaPortal.UI.Players.Video;
 using MediaPortal.UI.Presentation.Players;
 
-namespace MediaPortal.Plugins.SlimTvClient
+namespace MediaPortal.Plugins.SlimTv.Client.Player
 {
   /// <summary>
   /// Player builder for Slim Tv player.
@@ -44,17 +46,17 @@ namespace MediaPortal.Plugins.SlimTvClient
       string title;
       if (!mediaItem.GetPlayData(out mimeType, out title))
         return null;
-      if (mimeType != "video/livetv")
+      if (mimeType != LiveTvMediaItem.MIME_TYPE_TV && mimeType != LiveTvMediaItem.MIME_TYPE_RADIO)
         return null;
       IResourceLocator locator = mediaItem.GetResourceLocator();
-      LiveTvPlayer player = new LiveTvPlayer();
+      BaseDXPlayer player = mimeType == LiveTvMediaItem.MIME_TYPE_TV ? (BaseDXPlayer) new LiveTvPlayer() : new LiveRadioPlayer(true);
       try
       {
         player.SetMediaItem(locator, title);
       }
       catch (Exception e)
       {
-        ServiceRegistration.Get<ILogger>().Warn("LiveTvPlayer: Error playing media item '{0}'", e, locator);
+        ServiceRegistration.Get<ILogger>().Warn("SlimTvPlayerBuilder: Error playing media item '{0}'", e, locator);
         player.Dispose();
         return null;
       }

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -303,10 +303,13 @@ namespace MediaPortal.UiComponents.SkinBase.Services
       {
         using (ra)
         {
-          ICollection<IFileSystemResourceAccessor> res = FileSystemResourceNavigator.GetChildDirectories(ra, ShowSystemResources);
+          IFileSystemResourceAccessor fsra = ra as IFileSystemResourceAccessor;
+          if (fsra == null)
+            yield break;
+          ICollection<IFileSystemResourceAccessor> res = FileSystemResourceNavigator.GetChildDirectories(fsra, ShowSystemResources);
           if (res != null)
             foreach (IFileSystemResourceAccessor childAccessor in res)
-              using(childAccessor)
+              using (childAccessor)
               {
                 yield return new ResourcePathMetadata
                   {
@@ -318,10 +321,7 @@ namespace MediaPortal.UiComponents.SkinBase.Services
         }
       }
       else
-      {
         ServiceRegistration.Get<ILogger>().Warn("FileBrowserModel: Cannot access resource path '{0}' for getting child directories", path);
-        yield break;
-      }
     }
 
     protected IEnumerable<ResourcePathMetadata> GetFilesData(ResourcePath path)
@@ -331,7 +331,10 @@ namespace MediaPortal.UiComponents.SkinBase.Services
       {
         using (ra)
         {
-          ICollection<IFileSystemResourceAccessor> res = FileSystemResourceNavigator.GetFiles(ra, ShowSystemResources);
+          IFileSystemResourceAccessor fsra = ra as IFileSystemResourceAccessor;
+          if (fsra == null)
+            yield break;
+          ICollection<IFileSystemResourceAccessor> res = FileSystemResourceNavigator.GetFiles(fsra, ShowSystemResources);
           if (res != null)
             foreach (IFileSystemResourceAccessor fileAccessor in res)
               using(fileAccessor)
@@ -346,10 +349,7 @@ namespace MediaPortal.UiComponents.SkinBase.Services
         }
       }
       else
-      {
         ServiceRegistration.Get<ILogger>().Warn("FileBrowserModel: Cannot access resource path '{0}' for getting files", path);
-        yield break;
-      }
     }
 
     /// <summary>

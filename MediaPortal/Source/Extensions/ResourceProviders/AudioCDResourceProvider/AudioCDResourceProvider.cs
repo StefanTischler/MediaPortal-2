@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -61,7 +61,7 @@ namespace MediaPortal.Extensions.ResourceProviders.AudioCDResourceProvider
 
     public AudioCDResourceProvider()
     {
-      _metadata = new ResourceProviderMetadata(AUDIO_CD_RESOURCE_PROVIDER_ID, RES_RESOURCE_PROVIDER_NAME, RES_RESOURCE_PROVIDER_DESCRIPTION, true);
+      _metadata = new ResourceProviderMetadata(AUDIO_CD_RESOURCE_PROVIDER_ID, RES_RESOURCE_PROVIDER_NAME, RES_RESOURCE_PROVIDER_DESCRIPTION, true, false);
     }
 
     public bool TryExtract(string path, out char drive, out byte trackNo)

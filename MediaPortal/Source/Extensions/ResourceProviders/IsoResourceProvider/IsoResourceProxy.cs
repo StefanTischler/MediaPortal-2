@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -38,7 +38,7 @@ namespace MediaPortal.Extensions.ResourceProviders.IsoResourceProvider
     protected IFileSystem _diskFileSystem;
     protected string _key;
     protected int _usageCount = 0;
-    protected IResourceAccessor _isoFileResourceAccessor;
+    protected IFileSystemResourceAccessor _isoFileResourceAccessor;
     protected Stream _underlayingStream;
     protected object _syncObj = new object();
 
@@ -46,7 +46,7 @@ namespace MediaPortal.Extensions.ResourceProviders.IsoResourceProvider
 
     #region Ctor
 
-    public IsoResourceProxy(string key, IResourceAccessor isoFileResourceAccessor)
+    public IsoResourceProxy(string key, IFileSystemResourceAccessor isoFileResourceAccessor)
     {
       _key = key;
       _isoFileResourceAccessor = isoFileResourceAccessor;
@@ -107,7 +107,7 @@ namespace MediaPortal.Extensions.ResourceProviders.IsoResourceProvider
       get { return _key; }
     }
 
-    public IResourceAccessor IsoFileResourceAccessor
+    public IFileSystemResourceAccessor IsoFileResourceAccessor
     {
       get { return _isoFileResourceAccessor; }
     }

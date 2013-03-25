@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -130,10 +130,7 @@ namespace UPnP.Infrastructure.Dv.GENA
       if (kvp == null)
         return null;
       TimeSpan result = kvp.Value.Key - DateTime.Now;
-      if (result < TimeSpan.Zero)
-        return TimeSpan.Zero;
-      else
-        return result;
+      return result < TimeSpan.Zero ? TimeSpan.Zero : result;
     }
 
     protected KeyValuePair<DateTime, IEnumerable<DvStateVariable>>? GetFirstScheduledEventNotification()
@@ -141,8 +138,7 @@ namespace UPnP.Infrastructure.Dv.GENA
       IEnumerator<KeyValuePair<DateTime, IEnumerable<DvStateVariable>>> enumer = _scheduledEventNotifications.GetEnumerator();
       if (enumer.MoveNext())
         return enumer.Current;
-      else
-        return null;
+      return null;
     }
 
     public ICollection<DvStateVariable> GetDueEvents()

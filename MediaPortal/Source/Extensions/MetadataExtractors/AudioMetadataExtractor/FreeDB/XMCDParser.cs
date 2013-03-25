@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -161,7 +161,7 @@ namespace Media.Importers.MusicImporter.Freedb
               if (thisOne > lastOne) // just to avoid adding unexpected commented numbers as offsets
                 offsets.Add(Convert.ToInt32(curcomment[0]));
             }
-            catch { ;}
+            catch { }
           }
         }
         else

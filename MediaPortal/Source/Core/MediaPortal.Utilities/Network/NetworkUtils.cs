@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -22,12 +22,16 @@
 
 #endregion
 
+using System;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Reflection;
 
 namespace MediaPortal.Utilities.Network
 {
+  /// <summary>
+  /// Provides utility methods concerning networking stuff.
+  /// </summary>
   public static class NetworkUtils
   {
     /// <summary>
@@ -79,6 +83,46 @@ namespace MediaPortal.Utilities.Network
     public static void SetLocalEndpoint(HttpWebRequest request, IPAddress preferredLocalIpAddress)
     {
       request.ServicePoint.BindIPEndPointDelegate = (servicePoint, remoteEndPoint, retryCount) => BindIPEndPointCallback(servicePoint, remoteEndPoint, preferredLocalIpAddress, retryCount);
+    }
+
+    /// <summary>
+    /// Determines whether any network connection is available.
+    /// Can filter connections below a specified speed, virtual network cards and the <c>"Microsoft Loopback Adapter"</c>.
+    /// </summary>
+    /// <param name="minimumSpeed">The minimum speed required. Passing <c>null</c> will not filter a minimum speed.</param>
+    /// <param name="filterVirtualCards">Controls if virtual network cards are filtered.</param>
+    /// <returns><c>true</c> if a network connection is available according to the filter criteria; otherwise, <c>false</c>.</returns>
+    public static bool IsNetworkAvailable(long? minimumSpeed, bool filterVirtualCards)
+    {
+      if (!NetworkInterface.GetIsNetworkAvailable())
+        return false;
+
+      foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
+      {
+        // Discard because of standard reasons
+        if ((ni.OperationalStatus != OperationalStatus.Up) ||
+            (ni.NetworkInterfaceType == NetworkInterfaceType.Loopback) ||
+            (ni.NetworkInterfaceType == NetworkInterfaceType.Tunnel))
+          continue;
+
+        // This allows to filter modems, serial, etc.
+        // I use 10000000 as a minimum speed for most cases
+        if (minimumSpeed.HasValue && ni.Speed < minimumSpeed)
+          continue;
+
+        // Discard virtual cards (virtual box, virtual pc, etc.)
+        if (filterVirtualCards &&
+            ((ni.Description.IndexOf("virtual", StringComparison.OrdinalIgnoreCase) >= 0) ||
+             (ni.Name.IndexOf("virtual", StringComparison.OrdinalIgnoreCase) >= 0)))
+          continue;
+
+        // Discard "Microsoft Loopback Adapter", it will not show as NetworkInterfaceType.Loopback but as Ethernet Card.
+        if (ni.Description.Equals("Microsoft Loopback Adapter", StringComparison.OrdinalIgnoreCase))
+          continue;
+
+        return true;
+      }
+      return false;
     }
   }
 }

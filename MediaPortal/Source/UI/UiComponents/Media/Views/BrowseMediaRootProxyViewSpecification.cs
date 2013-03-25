@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -97,7 +97,7 @@ namespace MediaPortal.UiComponents.Media.Views
     protected static bool IsSingleSeat(IServerConnectionManager serverConnectionManager)
     {
       SystemName homeServerSystem = serverConnectionManager.LastHomeServerSystem;
-      bool isLocalHomeServer = homeServerSystem == null ? false : homeServerSystem.IsLocalSystem();
+      bool isLocalHomeServer = homeServerSystem != null && homeServerSystem.IsLocalSystem();
       IServerController serverController = serverConnectionManager.ServerController;
       ILocalSharesManagement localSharesManagement = ServiceRegistration.Get<ILocalSharesManagement>();
       ICollection<Share> localClientShares = localSharesManagement.Shares.Values;

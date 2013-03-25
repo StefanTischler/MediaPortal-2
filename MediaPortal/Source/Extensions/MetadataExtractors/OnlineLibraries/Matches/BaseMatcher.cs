@@ -1,7 +1,7 @@
-﻿#region Copyright (C) 2007-2012 Team MediaPortal
+﻿#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -24,9 +24,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
+using MediaPortal.Common;
+using MediaPortal.Common.Threading;
 using MediaPortal.Extensions.OnlineLibraries.Libraries.Common;
+using MediaPortal.Utilities.Network;
 
 namespace MediaPortal.Extensions.OnlineLibraries.Matches
 {
@@ -61,15 +63,24 @@ namespace MediaPortal.Extensions.OnlineLibraries.Matches
     protected List<Thread> _downloadThreads = new List<Thread>(MAX_FANART_DOWNLOADERS);
     protected bool _downloadAllowed = true;
     protected Predicate<TMatch> _matchPredicate;
+    protected MatchStorage<TMatch, TId> _storage;
 
     #endregion
 
     protected BaseMatcher ()
     {
-      ResumeDownloads();
+      // Use own thread to avoid delay during startup
+      ServiceRegistration.Get<IThreadPool>().Add(ResumeDownloads, "ResumeDownloads", QueuePriority.Normal, ThreadPriority.BelowNormal);
     }
 
-    protected abstract bool Init();
+    protected virtual bool Init()
+    {
+      if (!NetworkConnectionTracker.IsNetworkConnected)
+        return false;
+      if (_storage == null)
+        _storage = new MatchStorage<TMatch, TId>(MatchesSettingsFile);
+      return true;
+    }
 
     public bool ScheduleDownload(TId tvDbId, bool force = false)
     {
@@ -104,33 +115,13 @@ namespace MediaPortal.Extensions.OnlineLibraries.Matches
       _downloadThreads.Clear();
     }
 
-    protected List<TMatch> LoadMatches()
-    {
-      return Settings.Load<List<TMatch>>(MatchesSettingsFile) ?? new List<TMatch>();
-    }
-
-    protected abstract List<TMatch> FindNameMatch(List<TMatch> matches, string name);
-
-    protected void SaveNewMatch(string itemName, TMatch onlineMatch)
-    {
-      lock (_syncObj)
-      {
-        List<TMatch> matches = LoadMatches();
-        if (matches.Any(m => m.ItemName == itemName))
-          return;
-        matches.Add(onlineMatch);
-        Settings.Save(MatchesSettingsFile, matches);
-      }
-    }
-
-    // TODO: implement lookup table and download stats in database
     protected bool CheckBeginDownloadFanArt(TId itemId)
     {
       bool fanArtDownloaded = false;
       lock (_syncObj)
       {
         // Load cache or create new list
-        List<TMatch> matches = LoadMatches();
+        List<TMatch> matches = _storage.LoadMatches();
         foreach (TMatch match in matches.FindAll(m => m.Id.Equals(itemId)))
         {
           // We can have multiple matches for one TvDbId in list, if one has FanArt downloaded already, update the flag for all matches.
@@ -150,12 +141,12 @@ namespace MediaPortal.Extensions.OnlineLibraries.Matches
       lock (_syncObj)
       {
         // Load cache or create new list
-        List<TMatch> matches = LoadMatches();
+        List<TMatch> matches = _storage.LoadMatches();
         foreach (TMatch match in matches.FindAll(m => m.Id.Equals(itemId)))
           if (!match.FanArtDownloadFinished.HasValue)
             match.FanArtDownloadFinished = DateTime.Now;
 
-        Settings.Save(MatchesSettingsFile, matches);
+        _storage.SaveMatches(matches);
       }
     }
 
@@ -166,7 +157,7 @@ namespace MediaPortal.Extensions.OnlineLibraries.Matches
 
       List<TMatch> matches;
       lock (_syncObj)
-        matches = LoadMatches();
+        matches = _storage.LoadMatches();
 
       foreach (TMatch match in matches.FindAll(m => m.FanArtDownloadStarted.HasValue && !m.FanArtDownloadFinished.HasValue ||
           !m.Id.Equals(default(TId)) && !m.FanArtDownloadStarted.HasValue))

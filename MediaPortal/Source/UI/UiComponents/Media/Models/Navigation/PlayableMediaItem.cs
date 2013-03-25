@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -53,6 +53,7 @@ namespace MediaPortal.UiComponents.Media.Models.Navigation
       {
         Title = (string) mediaAspect[MediaAspect.ATTR_TITLE];
         Rating = (int?) mediaAspect[MediaAspect.ATTR_RATING] ?? 0;
+        PlayCount = (int?) mediaAspect[MediaAspect.ATTR_PLAYCOUNT] ?? 0;
       }
     }
 
@@ -82,6 +83,12 @@ namespace MediaPortal.UiComponents.Media.Models.Navigation
     {
       get { return (int?) AdditionalProperties[Consts.KEY_RATING] ?? 0; }
       set { AdditionalProperties[Consts.KEY_RATING] = value; }
+    }
+
+    public int PlayCount
+    {
+      get { return (int?) AdditionalProperties[Consts.KEY_PLAYCOUNT] ?? 0; }
+      set { AdditionalProperties[Consts.KEY_PLAYCOUNT] = value; }
     }
   }
 }

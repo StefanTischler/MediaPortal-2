@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -142,6 +142,7 @@ namespace MediaPortal.Backend.Services.MediaLibrary
     #region Consts
 
     protected const string KEY_CURRENTLY_IMPORTING_SHARE_IDS = "CurrentlyImportingShareIds";
+    protected const char ESCAPE_CHAR = '\\';
 
     #endregion
 
@@ -169,7 +170,7 @@ namespace MediaPortal.Backend.Services.MediaLibrary
       _importResultHandler = new ImportResultHandler(this);
       _messageQueue = new AsynchronousMessageQueue(this, new string[]
         {
-            ImporterWorkerMessaging.CHANNEL,
+            ImporterWorkerMessaging.CHANNEL
         });
       _messageQueue.MessageReceived += OnMessageReceived;
     }
@@ -196,7 +197,7 @@ namespace MediaPortal.Backend.Services.MediaLibrary
             if (messageType == ImporterWorkerMessaging.MessageType.ImportStarted)
               ContentDirectoryMessaging.SendShareImportMessage(ContentDirectoryMessaging.MessageType.ShareImportStarted, share.ShareId);
             else
-              ContentDirectoryMessaging.SendShareImportMessage(ContentDirectoryMessaging.MessageType.ShareImportStarted, share.ShareId);
+              ContentDirectoryMessaging.SendShareImportMessage(ContentDirectoryMessaging.MessageType.ShareImportCompleted, share.ShareId);
             break;
         }
       }
@@ -233,17 +234,20 @@ namespace MediaPortal.Backend.Services.MediaLibrary
       int pathIndex;
       int shareNameIndex;
       ISQLDatabase database = transaction.Database;
-      using (IDbCommand command = MediaLibrary_SubSchema.SelectShareByIdCommand(transaction, shareId, out systemIdIndex,
-          out pathIndex, out shareNameIndex))
+      Share share;
+      using (IDbCommand command = MediaLibrary_SubSchema.SelectShareByIdCommand(transaction, shareId, out systemIdIndex, out pathIndex, out shareNameIndex))
       using (IDataReader reader = command.ExecuteReader(CommandBehavior.SingleRow))
       {
         if (!reader.Read())
           return null;
-        ICollection<string> mediaCategories = GetShareMediaCategories(transaction, shareId);
-        return new Share(shareId, database.ReadDBValue<string>(reader, systemIdIndex), ResourcePath.Deserialize(
+        share = new Share(shareId, database.ReadDBValue<string>(reader, systemIdIndex), ResourcePath.Deserialize(
             database.ReadDBValue<string>(reader, pathIndex)),
-            database.ReadDBValue<string>(reader, shareNameIndex), mediaCategories);
+            database.ReadDBValue<string>(reader, shareNameIndex), null);
       }
+      // Init share categories later to avoid opening new result sets inside reader loop (issue with MySQL)
+      ICollection<string> mediaCategories = GetShareMediaCategories(transaction, shareId);
+      CollectionUtils.AddAll(share.MediaCategories, mediaCategories);
+      return share;
     }
 
     protected Guid? GetMediaItemId(ITransaction transaction, string systemId, ResourcePath resourcePath)
@@ -261,7 +265,12 @@ namespace MediaPortal.Backend.Services.MediaLibrary
         database.AddParameter(command, "SYSTEM_ID", systemId, typeof(string));
         database.AddParameter(command, "PATH", resourcePath.Serialize(), typeof(string));
 
-        return (Guid?) command.ExecuteScalar();
+        using (IDataReader reader = command.ExecuteReader())
+        {
+          if (!reader.Read())
+            return null;
+          return database.ReadDBValue<Guid>(reader, 0);
+        }
       }
     }
 
@@ -326,25 +335,28 @@ namespace MediaPortal.Backend.Services.MediaLibrary
           if (inclusive)
             commandStr += pathAttribute + " = @EXACT_PATH OR ";
           commandStr +=
-              pathAttribute + " LIKE @LIKE_PATH1 ESCAPE '\\' OR " +
-              pathAttribute + " LIKE @LIKE_PATH2 ESCAPE '\\'" +
+              pathAttribute + " LIKE @LIKE_PATH1 ESCAPE @LIKE_ESCAPE1 OR " +
+              pathAttribute + " LIKE @LIKE_PATH2 ESCAPE @LIKE_ESCAPE2" +
               ")";
           string path = StringUtils.RemoveSuffixIfPresent(basePath.Serialize(), "/");
-          string escapedPath = SqlUtils.LikeEscape(path, '\\');
+          string escapedPath = SqlUtils.LikeEscape(path, ESCAPE_CHAR);
           if (inclusive)
           {
             // The path itself
             database.AddParameter(command, "EXACT_PATH", path, typeof(string));
             // Normal children and, if escapedPath ends with "/", the directory itself
             database.AddParameter(command, "LIKE_PATH1", escapedPath + "/%", typeof(string));
+            database.AddParameter(command, "LIKE_ESCAPE1", ESCAPE_CHAR, typeof(char));
           }
           else
           {
             // Normal children, in any case excluding the escaped path, even if it is a directory which ends with "/"
             database.AddParameter(command, "LIKE_PATH1", escapedPath + "/_%", typeof(string));
+            database.AddParameter(command, "LIKE_ESCAPE1", ESCAPE_CHAR, typeof(char));
           }
           // Chained children
           database.AddParameter(command, "LIKE_PATH2", escapedPath + ">_%", typeof(string));
+          database.AddParameter(command, "LIKE_ESCAPE2", ESCAPE_CHAR, typeof(char));
         }
 
         commandStr = commandStr + ")";
@@ -466,7 +478,7 @@ namespace MediaPortal.Backend.Services.MediaLibrary
             if (attrType.AttributeType == typeof(string) &&
                 attrType.MaxNumChars >= searchText.Length &&
                 (includeCLOBs || !_miaManagement.IsCLOBAttribute(attrType)))
-              textFilters.Add(new LikeFilter(attrType, "%" + SqlUtils.LikeEscape(searchText, '\\') + "%", '\\', caseSensitive));
+              textFilters.Add(new LikeFilter(attrType, "%" + SqlUtils.LikeEscape(searchText, ESCAPE_CHAR) + "%", ESCAPE_CHAR, caseSensitive));
         resultFilter = BooleanCombinationFilter.CombineFilters(BooleanOperator.And,
             new BooleanCombinationFilter(BooleanOperator.Or, textFilters), filter);
       }
@@ -815,7 +827,6 @@ namespace MediaPortal.Backend.Services.MediaLibrary
       ITransaction transaction = database.BeginTransaction();
       try
       {
-        bool result = false;
         foreach (MediaItemAspect mia in mediaItemAspects)
         {
           if (!_miaManagement.ManagedMediaItemAspectTypes.ContainsKey(mia.Metadata.AspectId))
@@ -868,7 +879,7 @@ namespace MediaPortal.Backend.Services.MediaLibrary
       IClientManager clientManager = ServiceRegistration.Get<IClientManager>();
       lock (clientManager.SyncObj)
       {
-        ClientConnection client = clientManager.ConnectedClients.Where(c => c.Descriptor.MPFrontendServerUUID == share.SystemId).FirstOrDefault();
+        ClientConnection client = clientManager.ConnectedClients.FirstOrDefault(c => c.Descriptor.MPFrontendServerUUID == share.SystemId);
         if (client == null)
           return;
         object value;
@@ -891,7 +902,7 @@ namespace MediaPortal.Backend.Services.MediaLibrary
       IClientManager clientManager = ServiceRegistration.Get<IClientManager>();
       lock (clientManager.SyncObj)
       {
-        ClientConnection client = clientManager.ConnectedClients.Where(c => c.Descriptor.MPFrontendServerUUID == share.SystemId).FirstOrDefault();
+        ClientConnection client = clientManager.ConnectedClients.FirstOrDefault(c => c.Descriptor.MPFrontendServerUUID == share.SystemId);
         if (client == null)
           return;
         object value;
@@ -1172,12 +1183,16 @@ namespace MediaPortal.Backend.Services.MediaLibrary
             while (reader.Read())
             {
               Guid shareId = database.ReadDBValue<Guid>(reader, shareIdIndex);
-              ICollection<string> mediaCategories = GetShareMediaCategories(transaction, shareId);
               result.Add(shareId, new Share(shareId, database.ReadDBValue<string>(reader, systemIdIndex),
                   ResourcePath.Deserialize(database.ReadDBValue<string>(reader, pathIndex)),
-                  database.ReadDBValue<string>(reader, shareNameIndex),
-                  mediaCategories));
+                  database.ReadDBValue<string>(reader, shareNameIndex), null));
             }
+          }
+          // Init share categories later to avoid opening new result sets inside reader loop (issue with MySQL)
+          foreach (var share in result)
+          {
+            ICollection<string> mediaCategories = GetShareMediaCategories(transaction, share.Key);
+            CollectionUtils.AddAll(share.Value.MediaCategories, mediaCategories);
           }
           return result;
         }

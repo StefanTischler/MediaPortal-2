@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -47,7 +47,7 @@ namespace MediaPortal.UiComponents.SkinBase.Models
     protected AbstractProperty _isMouseUsedProperty;
     protected AbstractProperty _screenSaverTextProperty;
 
-    public ScreenSaverModel() : base(100)
+    public ScreenSaverModel() : base(true, 100)
     {
       _isScreenSaverActiveProperty = new WProperty(typeof(bool), false);
       _isMouseUsedProperty = new WProperty(typeof(bool), false);

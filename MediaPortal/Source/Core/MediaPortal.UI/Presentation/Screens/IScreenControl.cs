@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -67,6 +67,16 @@ namespace MediaPortal.UI.Presentation.Screens
     /// Gets or sets the maximum energy saver level which may be set by Windows.
     /// </summary>
     SuspendLevel ApplicationSuspendLevel { get; set; }
+
+    /// <summary>
+    /// Gets or sets the strategy implementation which controls how the screen control component synchronizes the framerate to a
+    /// running video. 
+    /// <remarks>
+    /// When setting a new <see cref="IVideoPlayerSynchronizationStrategy"/>, it will be started automatically (<see cref="IVideoPlayerSynchronizationStrategy.Start"/>).
+    /// The replaced <see cref="IVideoPlayerSynchronizationStrategy"/> is stopped automatically (<see cref="IVideoPlayerSynchronizationStrategy.Stop"/>).
+    /// </remarks>
+    /// </summary>
+    IVideoPlayerSynchronizationStrategy VideoPlayerSynchronizationStrategy { get; set; }
 
     /// <summary>
     /// Enables or disables the MediaPortal 2 internal screen saver or sets its timeout.

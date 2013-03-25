@@ -160,6 +160,7 @@
     <Compile Include="PluginItemBuilders\MIATypeRegistrationBuilder.cs" />
     <Compile Include="PluginManager\DefaultItemRegistrationChangeListener.cs" />
     <Compile Include="PluginManager\DefaultItemStateTracker.cs" />
+    <Compile Include="ResourceAccess\INetworkResourceAccessor.cs" />
     <Compile Include="ResourceAccess\ProviderPathHelper.cs" />
     <Compile Include="ResourceAccess\FileSystemResourceNavigator.cs" />
     <Compile Include="MediaManagement\IImporterWorker.cs" />
@@ -224,9 +225,7 @@
     <Compile Include="Services\ResourceAccess\LocalFsResourceProvider\LocalFsResourceAccessor.cs" />
     <Compile Include="Services\ResourceAccess\LocalFsResourceProvider\LocalFsResourceProvider.cs" />
     <Compile Include="Services\ResourceAccess\RemoteResourceInformationService.cs" />
-    <Compile Include="Services\ResourceAccess\RemoteResourceProvider\RemoteResourceAccessorBase.cs" />
     <Compile Include="Services\ResourceAccess\RemoteResourceProvider\RemoteFileSystemResourceAccessor.cs" />
-    <Compile Include="Services\ResourceAccess\RemoteResourceProvider\RemoteFileResourceAccessor.cs" />
     <Compile Include="Services\ResourceAccess\RemoteResourceProvider\RemoteResourceProvider.cs" />
     <Compile Include="Services\ResourceAccess\ResourceAccessModule.cs" />
     <Compile Include="MediaManagement\MediaItemAspect.cs" />
@@ -364,6 +363,7 @@
     <Compile Include="UPnP\UPnPDtUserProfileEnumeration.cs" />
     <Compile Include="UserProfileDataManagement\IUserProfileDataManagement.cs" />
     <Compile Include="UserProfileDataManagement\UserProfile.cs" />
+    <Compile Include="Utils\NativeMethods.cs" />
     <Compile Include="VersionInfo\VersionInfo.cs" />
   </ItemGroup>
   <ItemGroup>

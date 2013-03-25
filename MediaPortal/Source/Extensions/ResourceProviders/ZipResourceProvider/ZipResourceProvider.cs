@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -72,7 +72,7 @@ namespace MediaPortal.Extensions.ResourceProviders.ZipResourceProvider
 
     public ZipResourceProvider()
     {
-      _metadata = new ResourceProviderMetadata(ZIP_RESOURCE_PROVIDER_ID, RES_RESOURCE_PROVIDER_NAME, RES_RESOURCE_PROVIDER_DESCRIPTION, false);
+      _metadata = new ResourceProviderMetadata(ZIP_RESOURCE_PROVIDER_ID, RES_RESOURCE_PROVIDER_NAME, RES_RESOURCE_PROVIDER_DESCRIPTION, false, false);
     }
 
     #endregion
@@ -89,7 +89,7 @@ namespace MediaPortal.Extensions.ResourceProviders.ZipResourceProvider
       }
     }
 
-    internal ZipResourceProxy CreateZipResourceProxy(string key, IResourceAccessor zipFileResourceAccessor)
+    internal ZipResourceProxy CreateZipResourceProxy(string key, IFileSystemResourceAccessor zipFileResourceAccessor)
     {
       ZipResourceProxy result = new ZipResourceProxy(key, zipFileResourceAccessor);
       result.Orphaned += OnZipResourceProxyOrphaned;
@@ -110,7 +110,7 @@ namespace MediaPortal.Extensions.ResourceProviders.ZipResourceProvider
 
     #region IChainedResourceProvider implementation
 
-    public bool TryChainUp(IResourceAccessor potentialBaseResourceAccessor, string path, out IResourceAccessor resultResourceAccessor)
+    public bool TryChainUp(IFileSystemResourceAccessor potentialBaseResourceAccessor, string path, out IFileSystemResourceAccessor resultResourceAccessor)
     {
       resultResourceAccessor = null;
       string resourcePathName = potentialBaseResourceAccessor.ResourcePathName;
@@ -137,7 +137,7 @@ namespace MediaPortal.Extensions.ResourceProviders.ZipResourceProvider
       }
     }
 
-    public bool IsResource(IResourceAccessor baseResourceAccessor, string path)
+    public bool IsResource(IFileSystemResourceAccessor baseResourceAccessor, string path)
     {
       string entryPath = ZipResourceAccessor.ToEntryPath(path);
 

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -112,9 +112,14 @@ namespace MediaPortal.UI.SkinEngine.DirectX
       get { return _currentGraphicsConfiguration; }
     }
 
+    public bool IsMultiSample
+    {
+      get { return _presentParams.Multisample != MultisampleType.None; }
+    }
+
     public Present Present
     {
-      get { return _presentParams.Multisample == MultisampleType.None ? Present.ForceImmediate : Present.None; }
+      get { return IsMultiSample ? Present.None : Present.ForceImmediate; }
     }
 
     /// <summary>
@@ -215,7 +220,7 @@ namespace MediaPortal.UI.SkinEngine.DirectX
           configuration.AdapterInfo.AdapterOrdinal,
           configuration.DeviceInfo.DevType,
           _renderTarget.Handle,
-          createFlags | CreateFlags.Multithreaded,
+          createFlags | CreateFlags.Multithreaded | CreateFlags.EnablePresentStatistics,
           _presentParams);
 
       // When moving from fullscreen to windowed mode, it is important to
@@ -490,10 +495,11 @@ namespace MediaPortal.UI.SkinEngine.DirectX
       result.DeviceWindowHandle = _renderTarget.Handle;
       result.Windowed = configuration.DeviceCombo.IsWindowed;
       result.BackBufferFormat = configuration.DeviceCombo.BackBufferFormat;
-      result.BackBufferCount = 4; // 2 to 4 are recommended for FlipEx swap mode
 #if PROFILE_PERFORMANCE
-      _presentParams.PresentationInterval = PresentInterval.Immediate;
+      result.BackBufferCount = 20; // Such high backbuffer count is only useful for benchmarking so that rendering is not limited by backbuffer count
+      result.PresentationInterval = PresentInterval.One;
 #else
+      result.BackBufferCount = 4; // 2 to 4 are recommended for FlipEx swap mode
       result.PresentationInterval = PresentInterval.One;
 #endif
       result.FullScreenRefreshRateInHertz = result.Windowed ? 0 : configuration.DisplayMode.RefreshRate;

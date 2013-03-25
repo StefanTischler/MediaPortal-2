@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -262,7 +262,7 @@ namespace MediaPortal.UI.SkinEngine.Xaml
       get
       {
         PropertyInfo itemPi = GetIndexerPropertyInfo(_target.GetType());
-        return itemPi == null ? false : itemPi.CanRead;
+        return itemPi != null && itemPi.CanRead;
       }
     }
 
@@ -271,7 +271,7 @@ namespace MediaPortal.UI.SkinEngine.Xaml
       get
       {
         PropertyInfo itemPi = GetIndexerPropertyInfo(_target.GetType());
-        return itemPi == null ? false : itemPi.CanWrite;
+        return itemPi != null && itemPi.CanWrite;
       }
     }
 
@@ -422,7 +422,7 @@ namespace MediaPortal.UI.SkinEngine.Xaml
 
     public override string ToString()
     {
-      return string.Format("Target: {0}, indices: {1}", _target, StringUtils.Join(", ", _indices));
+      return string.Format("Target: <{0}>, indices: {1}", _target, StringUtils.Join(", ", _indices));
     }
   }
 
@@ -601,7 +601,7 @@ namespace MediaPortal.UI.SkinEngine.Xaml
 
     public override string ToString()
     {
-      return string.Format("Obj: {0}, indices: {1}", _obj, StringUtils.Join(", ", _indices));
+      return string.Format("Obj: {0}, prop: {1}, indices: {2}", _obj, _prop.Name, StringUtils.Join(", ", _indices));
     }
   }
 

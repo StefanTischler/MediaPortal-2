@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -142,8 +142,8 @@ namespace MediaPortal.UI.SkinEngine.Controls.Panels
 
     void OnChildrenChanged(FrameworkElementCollection coll)
     {
-      InvalidateLayout(true, true);
       _updateRenderOrder = true;
+      InvalidateLayout(true, true);
     }
 
     protected void OnBackgroundPropertyChanged(AbstractProperty property, object oldValue)
@@ -272,7 +272,7 @@ namespace MediaPortal.UI.SkinEngine.Controls.Panels
         element.Render(localRenderContext);
     }
 
-    public override void DoRender(RenderContext localRenderContext)
+    public override void RenderOverride(RenderContext localRenderContext)
     {
       UpdateRenderOrder();
 

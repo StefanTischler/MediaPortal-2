@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -70,8 +70,7 @@ namespace UPnP.Infrastructure.CP.DeviceTree
         double n = (doubleVal - _minValue) / _step.Value;
         return (n - (int) n) < 0.001;
       }
-      else
-        return true;
+      return true;
     }
 
     #region Connection

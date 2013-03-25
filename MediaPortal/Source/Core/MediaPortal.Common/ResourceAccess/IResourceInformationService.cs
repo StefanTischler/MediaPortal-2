@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -31,7 +31,7 @@ namespace MediaPortal.Common.ResourceAccess
 {
   /// <summary>
   /// Interface of the MediaPortal 2 resource information service. This interface is implemented by both
-  /// the MediaPortal 2 client and server to provide information about resources.
+  /// the MediaPortal 2 client and server to provide information about file system resources.
   /// </summary>
   public interface IResourceInformationService
   {

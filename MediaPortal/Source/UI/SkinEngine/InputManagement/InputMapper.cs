@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -163,6 +163,19 @@ namespace MediaPortal.UI.SkinEngine.InputManagement
           return Key.F23;
         case Keys.F24:
           return Key.F24;
+
+        case Keys.X:
+          if (control)
+            return Key.Cut;
+          break;
+        case Keys.C:
+          if (control)
+            return Key.Copy;
+          break;
+        case Keys.V:
+          if (control)
+            return Key.Paste;
+          break;
       }
       return Key.None;
     }

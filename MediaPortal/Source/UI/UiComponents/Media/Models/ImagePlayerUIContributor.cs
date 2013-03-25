@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -55,12 +55,15 @@ namespace MediaPortal.UiComponents.Media.Models
     protected AbstractProperty _imageDimensionsProperty;
     protected AbstractProperty _imageISOSpeedProperty;
     protected AbstractProperty _imageMeteringModeProperty;
+    protected AbstractProperty _imageCountryProperty;
+    protected AbstractProperty _imageStateProperty;
+    protected AbstractProperty _imageCityProperty;
 
     #endregion
 
     #region Constructor
 
-    public ImagePlayerUIContributor() : base(300)
+    public ImagePlayerUIContributor() : base(true, 300)
     {}
 
     #endregion
@@ -195,6 +198,39 @@ namespace MediaPortal.UiComponents.Media.Models
       set { _imageMeteringModeProperty.SetValue(value); }
     }
 
+    public AbstractProperty CountryProperty
+    {
+      get { return _imageCountryProperty; }
+    }
+
+    public string Country
+    {
+      get { return (string) _imageCountryProperty.GetValue(); }
+      set { _imageCountryProperty.SetValue(value); }
+    }
+
+    public AbstractProperty StateProperty
+    {
+      get { return _imageStateProperty; }
+    }
+
+    public string State
+    {
+      get { return (string) _imageStateProperty.GetValue(); }
+      set { _imageStateProperty.SetValue(value); }
+    }
+
+    public AbstractProperty CityProperty
+    {
+      get { return _imageCityProperty; }
+    }
+
+    public string City
+    {
+      get { return (string) _imageCityProperty.GetValue(); }
+      set { _imageCityProperty.SetValue(value); }
+    }
+
     #endregion
 
     #endregion
@@ -240,6 +276,9 @@ namespace MediaPortal.UiComponents.Media.Models
       _imageDimensionsProperty = new WProperty(typeof(string), string.Empty);
       _imageISOSpeedProperty = new WProperty(typeof(string), string.Empty);
       _imageMeteringModeProperty = new WProperty(typeof(string), string.Empty);
+      _imageCountryProperty = new WProperty(typeof(string), string.Empty);
+      _imageStateProperty = new WProperty(typeof(string), string.Empty);
+      _imageCityProperty = new WProperty(typeof(string), string.Empty);
     }
 
     #endregion
@@ -271,6 +310,9 @@ namespace MediaPortal.UiComponents.Media.Models
           ImageFNumber = string.Empty;
           ImageFlashMode = string.Empty;
           ImageMeteringMode = string.Empty;
+          Country = string.Empty;
+          State = string.Empty;
+          City = string.Empty;
         }
         else
         {
@@ -282,6 +324,9 @@ namespace MediaPortal.UiComponents.Media.Models
           ImageFNumber = (string) imageAspect[ImageAspect.ATTR_FNUMBER];
           ImageFlashMode = (string) imageAspect[ImageAspect.ATTR_FLASH_MODE];
           ImageMeteringMode = (string) imageAspect[ImageAspect.ATTR_METERING_MODE];
+          Country = (string) imageAspect[ImageAspect.ATTR_COUNTRY];
+          State = (string) imageAspect[ImageAspect.ATTR_STATE];
+          City = (string) imageAspect[ImageAspect.ATTR_CITY];
         }
       }
       catch (Exception e)

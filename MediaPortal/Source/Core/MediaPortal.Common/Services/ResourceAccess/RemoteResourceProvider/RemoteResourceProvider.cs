@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -56,7 +56,7 @@ namespace MediaPortal.Common.Services.ResourceAccess.RemoteResourceProvider
 
     public RemoteResourceProvider()
     {
-      _metadata = new ResourceProviderMetadata(REMOTE_RESOURCE_PROVIDER_ID, RES_RESOURCE_PROVIDER_NAME, RES_RESOURCE_PROVIDER_DESCRIPTION, true);
+      _metadata = new ResourceProviderMetadata(REMOTE_RESOURCE_PROVIDER_ID, RES_RESOURCE_PROVIDER_NAME, RES_RESOURCE_PROVIDER_DESCRIPTION, true, false);
     }
 
     #endregion
@@ -120,12 +120,6 @@ namespace MediaPortal.Common.Services.ResourceAccess.RemoteResourceProvider
       if (RemoteFileSystemResourceAccessor.ConnectFileSystem(nativeSystemId, nativeResourcePath, out fsra))
       {
         result = fsra;
-        return true;
-      }
-      IResourceAccessor ra;
-      if (RemoteFileResourceAccessor.ConnectFile(nativeSystemId, nativeResourcePath, out ra))
-      {
-        result = ra;
         return true;
       }
       result = null;

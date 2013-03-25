@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -64,6 +64,8 @@ namespace MediaPortal.Common.Services.Dokan
     protected char _driveLetter;
     protected Thread _mountThread;
     protected VirtualRootDirectory _root = new VirtualRootDirectory("/");
+
+    public static ICollection<char> _dokanDriveLetters = new HashSet<char>();
 
     protected Dokan(char driveLetter)
     {
@@ -200,6 +202,10 @@ namespace MediaPortal.Common.Services.Dokan
     public static bool IsDokanDrive(char driveLetter)
     {
       bool result = false;
+      // Check if this drive was queried before
+      if (_dokanDriveLetters.Contains(driveLetter))
+        return true;
+
       try
       {
         ThreadingUtils.CallWithTimeout(() =>
@@ -218,6 +224,9 @@ namespace MediaPortal.Common.Services.Dokan
       {
         result = true;
       }
+      // Cache information only for DOKAN drives, all other (also non-existing) needs to be checked again (i.e. for removable media)
+      if (result)
+        _dokanDriveLetters.Add(driveLetter);
       return result;
     }
 
@@ -342,7 +351,7 @@ namespace MediaPortal.Common.Services.Dokan
           return -DokanNet.ERROR_FILE_NOT_FOUND;
         VirtualFileSystemResource resource = handle.Resource;
         VirtualFile file = resource as VirtualFile;
-        IResourceAccessor resourceAccessor = resource.ResourceAccessor;
+        IFileSystemResourceAccessor resourceAccessor = resource.ResourceAccessor;
         VirtualBaseDirectory directory = resource as VirtualBaseDirectory;
         fileinfo.FileName = filename;
         fileinfo.CreationTime = resource.CreationTime;
@@ -375,7 +384,7 @@ namespace MediaPortal.Common.Services.Dokan
         foreach (KeyValuePair<string, VirtualFileSystemResource> entry in directory.ChildResources)
         {
           VirtualFileSystemResource resource = entry.Value;
-          IResourceAccessor resourceAccessor = resource.ResourceAccessor;
+          IFileSystemResourceAccessor resourceAccessor = resource.ResourceAccessor;
           bool isFile = resource is VirtualFile;
           FileInformation fi = new FileInformation
             {

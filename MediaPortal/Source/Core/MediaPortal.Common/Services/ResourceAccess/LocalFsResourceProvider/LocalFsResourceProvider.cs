@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -101,7 +101,7 @@ namespace MediaPortal.Common.Services.ResourceAccess.LocalFsResourceProvider
 
     public LocalFsResourceProvider()
     {
-      _metadata = new ResourceProviderMetadata(LOCAL_FS_RESOURCE_PROVIDER_ID, RES_RESOURCE_PROVIDER_NAME, RES_RESOURCE_PROVIDER_DESCRIPTION, false);
+      _metadata = new ResourceProviderMetadata(LOCAL_FS_RESOURCE_PROVIDER_ID, RES_RESOURCE_PROVIDER_NAME, RES_RESOURCE_PROVIDER_DESCRIPTION, false, false);
       _instance = this;
     }
 
@@ -227,7 +227,7 @@ namespace MediaPortal.Common.Services.ResourceAccess.LocalFsResourceProvider
       if (path == "/")
         return true;
       string dosPath = ToDosPath(path);
-      return string.IsNullOrEmpty(dosPath) ? false : File.Exists(dosPath) || Directory.Exists(dosPath);
+      return !string.IsNullOrEmpty(dosPath) && (File.Exists(dosPath) || Directory.Exists(dosPath));
     }
 
     public bool TryCreateResourceAccessor(string path, out IResourceAccessor result)

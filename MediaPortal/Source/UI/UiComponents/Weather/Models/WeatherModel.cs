@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -36,6 +36,7 @@ using MediaPortal.UI.Presentation.DataObjects;
 using MediaPortal.UI.Presentation.Models;
 using MediaPortal.UI.Presentation.Workflow;
 using MediaPortal.UiComponents.Weather.Settings;
+using MediaPortal.Utilities.Network;
 
 namespace MediaPortal.UiComponents.Weather.Models
 {
@@ -265,6 +266,11 @@ namespace MediaPortal.UiComponents.Weather.Models
     /// <param name="threadArgument">City which should be refreshed.</param>
     private void BackgroundRefresh(object threadArgument)
     {
+      if (!NetworkConnectionTracker.IsNetworkConnected)
+      {
+        ServiceRegistration.Get<ILogger>().Debug("WeatherModel: Background refresh - No Network connected");
+        return;
+      }
       ServiceRegistration.Get<ILogger>().Debug("WeatherModel: Background refresh");
       _updateFinished.Reset();
       IncUpdateCount();

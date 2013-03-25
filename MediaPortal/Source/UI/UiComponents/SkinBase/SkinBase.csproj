@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -158,6 +158,9 @@
     <Content Include="Skin\default\images\sound.png" />
     <Content Include="Skin\default\images\sound_off.png" />
     <Content Include="Skin\default\images\video.png" />
+    <Content Include="Skin\default\shortcuts\SkinBase-shortcuts.xml">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="Skin\default\skin.xml" />
     <Content Include="Skin\default\sounds\button12.wav" />
     <Content Include="Skin\default\sounds\button6.wav" />
@@ -184,7 +187,7 @@
     <Content Include="Skin\default\images\info-icon.png" />
     <Content Include="Skin\default\images\user-interaction-required-icon.png" />
     <Content Include="Skin\default\screens\DialogChooseAudioStream.xaml" />
-    <Content Include="Skin\default\screens\DialogPlayerSlotAudio.xaml" />
+    <Content Include="Skin\default\screens\DialogPlayerAudioMenu.xaml" />
     <Content Include="Skin\default\screens\DialogPlayerChooseGeometry.xaml" />
     <Content Include="Skin\default\screens\DialogPlayerChooseEffect.xaml" />
     <Content Include="Skin\default\screens\GenericDialog.xaml" />

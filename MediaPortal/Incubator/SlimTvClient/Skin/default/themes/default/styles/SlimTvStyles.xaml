@@ -4,6 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:collections="clr-namespace:MediaPortal.UI.Presentation.DataObjects;assembly=MediaPortal.UI"
     xmlns:mp_special_controls="clr-namespace:MediaPortal.UI.SkinEngine.SpecialElements.Controls"
+    xmlns:navitems="clr-namespace:MediaPortal.Plugins.SlimTv.Client.Models.Navigation;assembly=SlimTv.Client"
+    xmlns:fanart="clr-namespace:MediaPortal.Extensions.UserServices.FanArtService.Client;assembly=FanArtService.Client"
     DependsOnStyleResources="SlimTvColors,SlimTvConsts,FullScreenContentConsts,MediaButtons,MediaColors,Consts,Colors,Buttons,OtherControls"
     >
   <!-- SlimTvClient model -->
@@ -56,13 +58,10 @@
                   </Grid.RowDefinitions>
 
                   <Image x:Name="ChannelLogo" Grid.Column="0" Grid.Row="0" Width="64" Height="64" Grid.RowSpan="2"
-                   Stretch="Uniform" FallbackSource="channellogos\no_channel_logo.png">
+                         Stretch="Uniform">
                     <Image.Source>
-                      <MultiBinding Converter="{StaticResource ExpressionMultiValueConverter}" ConverterParameter="{}{0}+{1}+{2}">
-                        <Binding Source="channellogos\"/>
-                        <Binding Source="{StaticResource SlimTvClient}" Path="ChannelName"/>
-                        <Binding Source=".png"/>
-                      </MultiBinding>
+                      <fanart:FanArtImageSource fanart:FanArtMediaType="Channel" fanart:FanArtType="Banner" fanart:FanArtName="{Binding Source={StaticResource SlimTvClient}, Path=ChannelName}"
+                                    fanart:MaxWidth="0" fanart:MaxHeight="0"/>
                     </Image.Source>
                   </Image>
 
@@ -453,9 +452,12 @@
             <Control Style="{ThemeResource ButtonControlStyle}" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2"
                      VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
             <Image x:Name="ChannelLogo" Grid.Column="0" Grid.Row="0" Width="{ThemeResource ChannelLogoSmall}" Height="{ThemeResource ChannelLogoSmall}" 
-                   Stretch="Uniform"
-                   Source="{Binding ChannelLogoPath}"
-                   FallbackSource="channellogos\no_channel_logo.png"/>
+                   Stretch="Uniform">
+              <Image.Source>
+                <fanart:FanArtImageSource fanart:FanArtMediaType="Channel" fanart:FanArtType="Banner" fanart:FanArtName="{Binding ChannelLogoPath}"
+                                    fanart:MaxWidth="0" fanart:MaxHeight="0"/>
+              </Image.Source>
+            </Image>
             <ContentPresenter Grid.Column="1" Grid.Row="0" x:Name="ButtonContentPresenter" Margin="5,5,0,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
           </Grid>
           <ControlTemplate.Triggers>
@@ -520,9 +522,12 @@
             <Control Style="{ThemeResource ButtonControlStyle}" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="4" Grid.RowSpan="2"
                      VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
             <Image x:Name="ChannelLogo" Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" Width="{ThemeResource ChannelLogoMedium}" Height="{ThemeResource ChannelLogoMedium}" 
-                   Stretch="Uniform" Margin="5,2,2,2"
-                   Source="{Binding ChannelLogoPath}"
-                   FallbackSource="channellogos\no_channel_logo.png"/>
+                   Stretch="Uniform" Margin="5,2,2,2">
+              <Image.Source>
+                <fanart:FanArtImageSource fanart:FanArtMediaType="Channel" fanart:FanArtType="Banner" fanart:FanArtName="{Binding ChannelLogoPath}"
+                                    fanart:MaxWidth="0" fanart:MaxHeight="0"/>
+              </Image.Source>
+            </Image>
             <Label Grid.Column="1" Grid.Row="0" x:Name="NameLabel" Margin="3,5,0,5" Content="{Binding [Name]}" Color="{ThemeResource TextColor}"/>
 
             <Label Grid.Column="2" Grid.Row="0" x:Name="CurrentProgramTimeLabel" Margin="5,5,0,5"
@@ -656,4 +661,84 @@
     <Setter Property="ItemContainerStyle" Value="{ThemeResource DefaultItemContainerStyle}"/>
   </Style>
 
+  <!-- MediaLibrary recordings section styles -->
+  <!-- Series Filter -->
+  <ControlTemplate x:Key="ListViewChannelFilterItemTemplate">
+    <Grid x:Name="ItemControl">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+      <DockPanel LastChildFill="True" Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Margin="0,0,4,0">
+        <Image x:Name="ItemTypeSmall" Stretch="Uniform" Width="{StaticResource MEDIA_THUMB_WIDTH_S}" Height="{StaticResource MEDIA_THUMB_HEIGHT_S}">
+          <Image.Source>
+            <fanart:FanArtImageSource fanart:FanArtMediaType="Channel" fanart:FanArtType="Poster" fanart:FanArtName="{Binding SimpleTitle}"
+                                    fanart:MaxWidth="0" fanart:MaxHeight="0"/>
+          </Image.Source>
+          <Image.IsVisible>
+            <Binding Source="{StaticResource ViewModeModel}" Path="LayoutSize" Converter="{StaticResource ExpressionValueConverter}" ConverterParameter="{}{0} == {LayoutSize}.{Small}"/>
+          </Image.IsVisible>
+        </Image>
+        <Image x:Name="ItemTypeMedium" Stretch="Uniform" Width="{StaticResource MEDIA_THUMB_WIDTH_M}" Height="{StaticResource MEDIA_THUMB_HEIGHT_M}">
+          <Image.Source>
+            <fanart:FanArtImageSource fanart:FanArtMediaType="Channel" fanart:FanArtType="Poster" fanart:FanArtName="{Binding SimpleTitle}"
+                                    fanart:MaxWidth="0" fanart:MaxHeight="0"/>
+          </Image.Source>
+          <Image.IsVisible>
+            <Binding Source="{StaticResource ViewModeModel}" Path="LayoutSize" Converter="{StaticResource ExpressionValueConverter}" ConverterParameter="{}{0} == {LayoutSize}.{Medium}"/>
+          </Image.IsVisible>
+        </Image>
+        <Image x:Name="ItemTypeLarge" Stretch="Uniform" Width="{StaticResource MEDIA_THUMB_WIDTH_L}" Height="{StaticResource MEDIA_THUMB_HEIGHT_L}">
+          <Image.Source>
+            <fanart:FanArtImageSource fanart:FanArtMediaType="Channel" fanart:FanArtType="Poster" fanart:FanArtName="{Binding SimpleTitle}"
+                                    fanart:MaxWidth="0" fanart:MaxHeight="0"/>
+          </Image.Source>
+          <Image.IsVisible>
+            <Binding Source="{StaticResource ViewModeModel}" Path="LayoutSize" Converter="{StaticResource ExpressionValueConverter}" ConverterParameter="{}{0} == {LayoutSize}.{Large}"/>
+          </Image.IsVisible>
+        </Image>
+      </DockPanel>
+      <Label x:Name="ItemLabel" Grid.Row="0" Grid.Column="1" Content="{Binding SimpleTitle}"
+          Color="{ThemeResource TextColor}" FontSize="{ThemeResource SmallFontSize}"/>
+      <Label x:Name="NumItems" Grid.Row="0" Grid.Column="2" Content="{Binding NumItems}"
+          Color="{ThemeResource TextColor}" FontSize="{ThemeResource SmallFontSize}"/>
+    </Grid>
+  </ControlTemplate>
+
+  <ControlTemplate x:Key="GridViewChannelFilterItemTemplate">
+    <Grid x:Name="ItemControl">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="{StaticResource GRIDVIEW_FILTER_WIDTH}"/>
+      </Grid.ColumnDefinitions>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="{StaticResource GRIDVIEW_FILTER_HEIGHT}"/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+      <Label x:Name="ItemLabel" Grid.Row="1" Grid.Column="0" Content="{Binding SimpleTitle}" HorizontalAlignment="Center"
+          Color="{ThemeResource TextColor}" FontSize="{ThemeResource SmallFontSize}"/>
+      <Image Width="{StaticResource MEDIA_THUMB_WIDTH_L}" Height="{StaticResource MEDIA_THUMB_HEIGHT_L}" Stretch="Uniform" Grid.Row="0" Grid.Column="1">
+        <Image.Source>
+          <fanart:FanArtImageSource fanart:FanArtMediaType="Channel" fanart:FanArtType="Poster" fanart:FanArtName="{Binding SimpleTitle}"
+                                    fanart:MaxWidth="0" fanart:MaxHeight="0"/>
+        </Image.Source>
+      </Image>
+    </Grid>
+  </ControlTemplate>
+
+  <DataTemplate DataType="{x:Type navitems:ChannelFilterItem}">
+    <Control>
+      <Control.Template>
+        <MultiBinding Converter="{StaticResource ExpressionMultiValueConverter}" ConverterParameter="{}{0} == {LayoutType}.{ListLayout} ? {1} : {2}">
+          <Binding Source="{StaticResource ViewModeModel}" Path="LayoutType"/>
+          <Binding Source="{StaticResource ListViewChannelFilterItemTemplate}"/>
+          <Binding Source="{StaticResource GridViewChannelFilterItemTemplate}"/>
+        </MultiBinding>
+      </Control.Template>
+    </Control>
+  </DataTemplate>  
 </ResourceDictionary>

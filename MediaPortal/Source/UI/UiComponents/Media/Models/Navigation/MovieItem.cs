@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -24,6 +24,7 @@
 
 using MediaPortal.Common.MediaManagement;
 using MediaPortal.Common.MediaManagement.DefaultItemAspects;
+using MediaPortal.Common.MediaManagement.Helpers;
 using MediaPortal.UiComponents.Media.General;
 
 namespace MediaPortal.UiComponents.Media.Models.Navigation
@@ -32,17 +33,25 @@ namespace MediaPortal.UiComponents.Media.Models.Navigation
   {
     public MovieItem(MediaItem mediaItem) : base(mediaItem)
     {
+      MovieInfo movieInfo = new MovieInfo();
       MediaItemAspect movieAspect;
       if (!mediaItem.Aspects.TryGetValue(MovieAspect.ASPECT_ID, out movieAspect)) 
         return;
 
-      MovieName = (string) movieAspect[MovieAspect.ATTR_MOVIE_NAME] ?? string.Empty;
+      MovieName = (string)movieAspect[MovieAspect.ATTR_MOVIE_NAME] ?? string.Empty;
+      CollectionName = movieInfo.CollectionName = (string)movieAspect[MovieAspect.ATTR_COLLECTION_NAME] ?? string.Empty;
     }
 
     public string MovieName
     {
       get { return this[Consts.KEY_SERIES_EPISODE_NAME]; }
       set { SetLabel(Consts.KEY_SERIES_EPISODE_NAME, value); }
+    }
+
+    public string CollectionName
+    {
+      get { return this[Consts.KEY_MOVIE_COLLECTION]; }
+      set { SetLabel(Consts.KEY_MOVIE_COLLECTION, value); }
     }
   }
 }

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -23,11 +23,11 @@
 #endregion
 
 using System;
-using Ui.Players.BassPlayer.Interfaces;
-using Ui.Players.BassPlayer.OutputDevices;
-using Ui.Players.BassPlayer.Settings;
+using MediaPortal.UI.Players.BassPlayer.Interfaces;
+using MediaPortal.UI.Players.BassPlayer.OutputDevices;
+using MediaPortal.UI.Players.BassPlayer.Settings;
 
-namespace Ui.Players.BassPlayer.PlayerComponents
+namespace MediaPortal.UI.Players.BassPlayer.PlayerComponents
 {
   public class OutputDeviceFactory : IDisposable
   {

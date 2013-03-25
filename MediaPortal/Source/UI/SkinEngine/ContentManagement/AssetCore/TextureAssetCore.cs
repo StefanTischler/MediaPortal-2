@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -31,6 +31,7 @@ using MediaPortal.Common;
 using MediaPortal.Common.Logging;
 using MediaPortal.UI.SkinEngine.DirectX;
 using MediaPortal.UI.SkinEngine.SkinManagement;
+using MediaPortal.Utilities.Network;
 using SlimDX;
 using SlimDX.Direct3D9;
 using MediaPortal.Common.Services.ThumbnailGenerator;
@@ -286,7 +287,13 @@ namespace MediaPortal.UI.SkinEngine.ContentManagement.AssetCore
             CachePolicy = new RequestCachePolicy(RequestCacheLevel.CacheIfAvailable)
           };
         _webClient.DownloadDataCompleted += DownloadComplete;
-        _webClient.DownloadDataAsync(uri, null);
+        if (NetworkConnectionTracker.IsNetworkConnected || uri.IsLoopback)
+          _webClient.DownloadDataAsync(uri, null);
+        else
+        {
+          ServiceRegistration.Get<ILogger>().Warn("AsyncStreamLoadOperation: No Network connected");
+          OperationFailed();
+        }
       }
 
       public override void Dispose()
@@ -309,7 +316,7 @@ namespace MediaPortal.UI.SkinEngine.ContentManagement.AssetCore
       {
         if (e.Cancelled || e.Error != null)
         {
-          ServiceRegistration.Get<ILogger>().Error("AsyncWebLoadOperation: Failed to download {0} - {1}", _uri, e.Cancelled ? "Request timed out" : e.Error.Message);
+          ServiceRegistration.Get<ILogger>().Warn("AsyncWebLoadOperation: Failed to download {0} - {1}", _uri, e.Cancelled ? "Request timed out" : e.Error.Message);
           OperationFailed();
           return;
         }
@@ -361,7 +368,7 @@ namespace MediaPortal.UI.SkinEngine.ContentManagement.AssetCore
         {
           if (_isCancelled)
           {
-            ServiceRegistration.Get<ILogger>().Error("AsyncStreamLoadOperation: Loading of stream '{0}': Stream access timed out", _streamName);
+            ServiceRegistration.Get<ILogger>().Warn("AsyncStreamLoadOperation: Loading of stream '{0}': Stream access timed out", _streamName);
             OperationFailed();
             return;
           }
@@ -380,7 +387,7 @@ namespace MediaPortal.UI.SkinEngine.ContentManagement.AssetCore
           }
           catch (Exception e)
           {
-            ServiceRegistration.Get<ILogger>().Error("AsyncStreamLoadOperation: Stream '{0}' could not be read: {1}", e, _streamName);
+            ServiceRegistration.Get<ILogger>().Warn("AsyncStreamLoadOperation: Stream '{0}' could not be read", e, _streamName);
             OperationFailed();
           }
         }
@@ -522,7 +529,7 @@ namespace MediaPortal.UI.SkinEngine.ContentManagement.AssetCore
           Uri uri;
           if (!Uri.TryCreate(_textureName, UriKind.Absolute, out uri))
           {
-            ServiceRegistration.Get<ILogger>().Error("Cannot open texture: {0}", _textureName);
+            ServiceRegistration.Get<ILogger>().Warn("Cannot open texture: {0}", _textureName);
             _state = State.Failed;
             return;
           }
@@ -607,7 +614,7 @@ namespace MediaPortal.UI.SkinEngine.ContentManagement.AssetCore
         }
         catch (Exception e)
         {
-          ServiceRegistration.Get<ILogger>().Error("TextureAssetCore: Image '{0}' could not be opened: {1}", _textureName, e);
+          ServiceRegistration.Get<ILogger>().Warn("TextureAssetCore: Image '{0}' could not be opened: {1}", _textureName, e);
           _state = State.Failed;
           return;
         }

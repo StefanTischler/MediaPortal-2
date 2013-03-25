@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -26,7 +26,7 @@ using System;
 using System.Collections.Generic;
 using MediaPortal.Common.Configuration.ConfigurationClasses;
 using MediaPortal.Common.Localization;
-using MediaPortal.UI.Services.Players;
+using MediaPortal.UI.Presentation.Players;
 using MediaPortal.UI.Services.Players.PCMOpenPlayerStrategy;
 using MediaPortal.UI.Services.Players.Settings;
 using MediaPortal.UiComponents.Media.General;

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -126,8 +126,10 @@ namespace MediaPortal.UiComponents.SkinBase.Models
 
     public void ClosePlayerContext(int playerIndex)
     {
-      IPlayerManager playerManager = ServiceRegistration.Get<IPlayerManager>();
-      playerManager.CloseSlot(playerIndex);
+      IPlayerContextManager playerContextManager = ServiceRegistration.Get<IPlayerContextManager>();
+      IPlayerContext pc = playerContextManager.GetPlayerContext(playerIndex);
+      if (pc != null)
+        pc.Close();
     }
 
     public void PlayersMute()
@@ -144,8 +146,8 @@ namespace MediaPortal.UiComponents.SkinBase.Models
 
     public void SwitchPrimarySecondaryPlayer()
     {
-      IPlayerManager playerManager = ServiceRegistration.Get<IPlayerManager>();
-      playerManager.SwitchSlots();
+      IPlayerContextManager playerContextManager = ServiceRegistration.Get<IPlayerContextManager>();
+      playerContextManager.SwitchPipPlayers();
     }
 
     #region Methods for general play controls

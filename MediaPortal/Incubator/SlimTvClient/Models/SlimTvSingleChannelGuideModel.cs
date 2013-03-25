@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -25,11 +25,11 @@
 using System;
 using MediaPortal.Common.Commands;
 using MediaPortal.Common.General;
-using MediaPortal.Plugins.SlimTvClient.Helpers;
-using MediaPortal.Plugins.SlimTvClient.Interfaces.Items;
+using MediaPortal.Plugins.SlimTv.Client.Helpers;
+using MediaPortal.Plugins.SlimTv.Interfaces.Items;
 using MediaPortal.UI.Presentation.DataObjects;
 
-namespace MediaPortal.Plugins.SlimTvClient
+namespace MediaPortal.Plugins.SlimTv.Client.Models
 {
   /// <summary>
   /// Model which holds the GUI state for the GUI test state.

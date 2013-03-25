@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -90,7 +90,7 @@ namespace MediaPortal.UI.Players.Video
     /// </summary>
     protected override void AddFileSource()
     {
-      string strFile = _resourceAccessor.LocalFileSystemPath;
+      string strFile = SourcePathOrUrl;
 
       // Render the file
       strFile = Path.Combine(strFile.ToLower(), @"BDMV\index.bdmv");

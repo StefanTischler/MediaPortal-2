@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -31,15 +31,16 @@ using MediaPortal.Common.Localization;
 using MediaPortal.Common.Logging;
 using MediaPortal.Common.PluginManager;
 using MediaPortal.Common.PluginManager.Exceptions;
-using MediaPortal.Plugins.SlimTvClient.Helpers;
-using MediaPortal.Plugins.SlimTvClient.Interfaces.Extensions;
-using MediaPortal.Plugins.SlimTvClient.Interfaces.Items;
+using MediaPortal.Plugins.SlimTv.Client.Helpers;
+using MediaPortal.Plugins.SlimTv.Interfaces;
+using MediaPortal.Plugins.SlimTv.Interfaces.Extensions;
+using MediaPortal.Plugins.SlimTv.Interfaces.Items;
 using MediaPortal.UI.Presentation.DataObjects;
 using MediaPortal.UI.Presentation.Players;
 using MediaPortal.UI.Presentation.Screens;
 using MediaPortal.UiComponents.Media.General;
 
-namespace MediaPortal.Plugins.SlimTvClient
+namespace MediaPortal.Plugins.SlimTv.Client.Models
 {
   /// <summary>
   /// <see cref="SlimTvGuideModelBase"/> acts as base class for all TvGuide models (single channel, multi channel).
@@ -151,15 +152,14 @@ namespace MediaPortal.Plugins.SlimTvClient
         if (isRunning)
         {
           _programActions.Add(new ListItem(Consts.KEY_NAME, loc.ToString("[SlimTvClient.WatchNow]"))
-                                {
-                                  Command =
-                                    new MethodDelegateCommand(() =>
-                                                                {
-                                                                  IChannel channel;
-                                                                  if (_tvHandler.ProgramInfo.GetChannel(program, out channel))
-                                                                    _tvHandler.StartTimeshift(PlayerManagerConsts.PRIMARY_SLOT, channel);
-                                                                })
-                                });
+              {
+                Command = new MethodDelegateCommand(() =>
+                    {
+                      IChannel channel;
+                      if (_tvHandler.ProgramInfo.GetChannel(program, out channel))
+                        _tvHandler.StartTimeshift(PlayerContextIndex.PRIMARY, channel);
+                    })
+              });
         }
 
         if (_tvHandler.ScheduleControl != null)

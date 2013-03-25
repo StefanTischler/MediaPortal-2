@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -42,7 +42,7 @@ using MediaPortal.Utilities.DeepCopy;
 namespace MediaPortal.UI.SkinEngine.Controls.Brushes
 {
   /// <summary>
-  /// Brush which paints the video image of a player provided by the <see cref="IPlayerManager"/>.
+  /// Brush which paints the video image of a player of type <see cref="ISlimDXVideoPlayer"/> provided by the <see cref="IPlayerManager"/>.
   /// </summary>
   public class VideoBrush : Brush
   {
@@ -311,12 +311,8 @@ namespace MediaPortal.UI.SkinEngine.Controls.Brushes
 
     protected override bool BeginRenderBrushOverride(PrimitiveBuffer primitiveContext, RenderContext renderContext)
     {
-      IPlayerManager playerManager = ServiceRegistration.Get<IPlayerManager>(false);
-      if (playerManager == null)
-        return false;
-
-      ISlimDXVideoPlayer player = playerManager[Stream] as ISlimDXVideoPlayer;
-      if (player == null) 
+      ISlimDXVideoPlayer player;
+      if (!GetPlayer(out player))
         return false;
 
       if (!RefreshEffectParameters(player))
@@ -339,6 +335,22 @@ namespace MediaPortal.UI.SkinEngine.Controls.Brushes
           device.StretchRectangle(playerSurface, target, TextureFilter.None);
       }
       return _imageContext.StartRender(renderContext, _scaledVideoSize, _texture, _videoTextureClip, BorderColor.ToArgb(), _lastFrameData);
+    }
+
+    protected virtual bool GetPlayer(out ISlimDXVideoPlayer player)
+    {
+      player = null;
+      IPlayerContextManager playerContextManager = ServiceRegistration.Get<IPlayerContextManager>(false);
+      if (playerContextManager == null)
+        return false;
+
+      player = playerContextManager[Stream] as ISlimDXVideoPlayer;
+      return player != null;
+    }
+
+    protected override bool BeginRenderOpacityBrushOverride(Texture tex, RenderContext renderContext)
+    {
+      throw new NotImplementedException("VideoBrush doesn't support being rendered as an opacity brush");
     }
 
     public override void EndRender()

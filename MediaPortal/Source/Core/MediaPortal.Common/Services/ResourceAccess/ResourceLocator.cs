@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -75,28 +75,38 @@ namespace MediaPortal.Common.Services.ResourceAccess
     public IResourceAccessor CreateAccessor()
     {
       ISystemResolver systemResolver = ServiceRegistration.Get<ISystemResolver>();
+      IResourceAccessor result;
+      if (_nativeResourcePath.IsNetworkResource)
+      {
+        if (_nativeResourcePath.TryCreateLocalResourceAccessor(out result) && result is INetworkResourceAccessor)
+          return result;
+      }
       SystemName nativeSystem = systemResolver.GetSystemNameForSystemId(_nativeSystemId);
       if (nativeSystem == null)
         throw new IllegalCallException("Cannot create resource accessor for resource location '{0}' at system '{1}': System is not available", _nativeResourcePath, _nativeSystemId);
       // Try to access resource locally. This might work if we have the correct resource providers installed.
-      IResourceAccessor result;
       if (nativeSystem.IsLocalSystem() && _nativeResourcePath.IsValidLocalPath && _nativeResourcePath.TryCreateLocalResourceAccessor(out result))
         return result;
       IFileSystemResourceAccessor fsra;
       if (RemoteFileSystemResourceAccessor.ConnectFileSystem(_nativeSystemId, _nativeResourcePath, out fsra))
         return fsra;
-      IResourceAccessor ra;
-      if (RemoteFileResourceAccessor.ConnectFile(_nativeSystemId, _nativeResourcePath, out ra))
-        return ra;
       throw new IllegalCallException("Cannot create resource accessor for resource location '{0}' at system '{1}'", _nativeResourcePath, _nativeSystemId);
     }
 
-    public ILocalFsResourceAccessor CreateLocalFsAccessor()
+    public bool TryCreateLocalFsAccessor(out ILocalFsResourceAccessor localFsResourceAccessor)
     {
       IResourceAccessor accessor = CreateAccessor();
+      IFileSystemResourceAccessor fsra = accessor as IFileSystemResourceAccessor;
+      if (fsra == null)
+      {
+        accessor.Dispose();
+        localFsResourceAccessor = null;
+        return false;
+      }
       try
       {
-        return StreamedResourceToLocalFsAccessBridge.StreamedResourceToLocalFsAccessBridge.GetLocalFsResourceAccessor(accessor);
+        localFsResourceAccessor = StreamedResourceToLocalFsAccessBridge.StreamedResourceToLocalFsAccessBridge.GetLocalFsResourceAccessor(fsra);
+        return true;
       }
       catch
       {

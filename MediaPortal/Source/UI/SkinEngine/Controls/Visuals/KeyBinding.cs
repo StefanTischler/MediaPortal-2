@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -22,7 +22,6 @@
 
 #endregion
 
-using System.Drawing;
 using MediaPortal.Common.General;
 using MediaPortal.UI.Control.InputManager;
 using MediaPortal.UI.Presentation.Actions;
@@ -105,11 +104,6 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
 
     #region Private & protected members
 
-    protected override SizeF CalculateInnerDesiredSize(SizeF totalSize)
-    {
-      return SizeF.Empty;
-    }
-
     void OnBindingRelatedPropertyChanged(AbstractProperty prop, object oldValue)
     {
       UnregisterKeyBinding();
@@ -148,9 +142,9 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
       _registeredKey = null;
     }
 
-    public override void FireEvent(string eventName, RoutingStrategyEnum routingStrategy)
+    protected override void DoFireEvent(string eventName)
     {
-      base.FireEvent(eventName, routingStrategy);
+      base.DoFireEvent(eventName);
       if (eventName == LOADED_EVENT)
         RegisterKeyBinding();
     }

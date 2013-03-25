@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using MediaPortal.Common.Logging;
@@ -62,7 +63,7 @@ namespace MediaPortal.Common.Services.PathManager
 
     public void InitializeDefaults()
     {
-      string applicationPath = Environment.GetCommandLineArgs()[0];
+      string applicationPath = Assembly.GetExecutingAssembly().Location;
       InitializeDefaults(applicationPath);
     }
 

@@ -1,7 +1,7 @@
-﻿#region Copyright (C) 2007-2012 Team MediaPortal
+﻿#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -34,7 +34,7 @@ namespace MediaPortal.Extensions.OnlineLibraries.Libraries.MovieDbV3.Data
   public class Genre
   {
     [DataMember(Name = "id")]
-    public int Id { get; set; }
+    public int? Id { get; set; }
     
     [DataMember(Name = "name")]
     public string Name { get; set; }

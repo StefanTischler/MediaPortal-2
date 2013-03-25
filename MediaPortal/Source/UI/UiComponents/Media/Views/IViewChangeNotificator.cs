@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -39,7 +39,7 @@ namespace MediaPortal.UiComponents.Media.Views
     /// Installs this change notificator. After this method was called, this change notificator can notify
     /// listeners of the <see cref="Changed"/> event.
     /// </summary>
-    void install();
+    void Install();
     
     // Derived from IDisposable:
     //void Dispose();

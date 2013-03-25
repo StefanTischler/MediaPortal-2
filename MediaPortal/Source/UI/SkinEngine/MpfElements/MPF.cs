@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -194,6 +194,8 @@ namespace MediaPortal.UI.SkinEngine.MpfElements
       _objectClassRegistrations.Add("ExpressionValueConverter", typeof(SkinEngine.MpfElements.Converters.ExpressionValueConverter));
       _objectClassRegistrations.Add("CommaSeparatedValuesConverter", typeof(SkinEngine.MpfElements.Converters.CommaSeparatedValuesConverter));
       _objectClassRegistrations.Add("DateFormatConverter", typeof(SkinEngine.MpfElements.Converters.DateFormatConverter));
+      _objectClassRegistrations.Add("DurationConverter", typeof(SkinEngine.MpfElements.Converters.DurationConverter));
+      _objectClassRegistrations.Add("PriorityBindingConverter", typeof(SkinEngine.MpfElements.Converters.PriorityBindingConverter));
 
       // Markup extensions
       _objectClassRegistrations.Add("StaticResource", typeof(SkinEngine.MarkupExtensions.StaticResourceMarkupExtension));

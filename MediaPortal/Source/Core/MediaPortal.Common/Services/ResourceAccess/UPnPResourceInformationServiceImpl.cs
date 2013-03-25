@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -67,7 +67,7 @@ namespace MediaPortal.Common.Services.ResourceAccess
         };
       AddStateVariable(A_ARG_TYPE_DateTime);
 
-      DvStateVariable A_ARG_TYPE_FileSize = new DvStateVariable("A_ARG_TYPE_FileSize", new DvStandardDataType(UPnPStandardDataType.Ui8))
+      DvStateVariable A_ARG_TYPE_FileSize = new DvStateVariable("A_ARG_TYPE_FileSize", new DvStandardDataType(UPnPStandardDataType.I8))
         {
             SendEvents = false
         };
@@ -340,7 +340,10 @@ namespace MediaPortal.Common.Services.ResourceAccess
         return new UPnPError(600, "The given path is not accessible");
       using (ra)
       {
-        ICollection<IFileSystemResourceAccessor> res = FileSystemResourceNavigator.GetChildDirectories(ra, false);
+        IFileSystemResourceAccessor fsra = ra as IFileSystemResourceAccessor;
+        if (fsra == null)
+          return new UPnPError(600, "The given path is not a file system resource");
+        ICollection<IFileSystemResourceAccessor> res = FileSystemResourceNavigator.GetChildDirectories(fsra, false);
         IList<ResourcePathMetadata> result = null;
         if (res != null)
         {
@@ -373,7 +376,10 @@ namespace MediaPortal.Common.Services.ResourceAccess
         return new UPnPError(600, "The given path is not accessible");
       using (ra)
       {
-        ICollection<IFileSystemResourceAccessor> res = FileSystemResourceNavigator.GetFiles(ra, false);
+        IFileSystemResourceAccessor fsra = ra as IFileSystemResourceAccessor;
+        if (fsra == null)
+          return new UPnPError(600, "The given path is not a file system resource");
+        ICollection<IFileSystemResourceAccessor> res = FileSystemResourceNavigator.GetFiles(fsra, false);
         IList<ResourcePathMetadata> result = null;
         if (res != null)
         {
@@ -419,19 +425,19 @@ namespace MediaPortal.Common.Services.ResourceAccess
       string resourcePathDisplayName = string.Empty;
       string resourceDisplayName = string.Empty;
       DateTime lastChanged = DateTime.MinValue;
-      UInt64 size = 0;
+      Int64 size = 0;
       IResourceAccessor ra;
       bool result = path.TryCreateLocalResourceAccessor(out ra);
       if (result)
         using (ra)
         {
-          isFileSystemResource = ra is IFileSystemResourceAccessor;
-          isFile = ra.IsFile;
+          IFileSystemResourceAccessor fsra = ra as IFileSystemResourceAccessor;
+          isFileSystemResource = fsra != null;
+          isFile = fsra.IsFile;
           resourcePathDisplayName = ra.ResourcePathName;
           resourceDisplayName = ra.ResourceName;
-          lastChanged = ra.LastChanged;
-          if (ra.IsFile)
-            size = (UInt64) ra.Size;
+          lastChanged = fsra.LastChanged;
+          size = fsra.IsFile ? fsra.Size : -1;
         }
       outParams = new List<object> {isFileSystemResource, isFile, resourcePathDisplayName, resourceDisplayName, lastChanged, size, result};
       return null;

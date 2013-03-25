@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -109,8 +109,7 @@ namespace MediaPortal.UI.SkinEngine.MarkupExtensions
           l.Add(string.Format("AncestorLevel={0}", AncestorLevel));
         return "{RelativeSource " + StringUtils.Join(",", l)+"}";
       }
-      else
-        return string.Format("RelativeSource Mode={0}", _mode);
+      return string.Format("RelativeSource Mode={0}", _mode);
     }
   }
 }

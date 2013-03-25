@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -37,6 +37,8 @@ using MediaPortal.UI.Presentation.SkinResources;
 using MediaPortal.UI.SkinEngine.Controls.Visuals;
 using MediaPortal.UI.SkinEngine.Controls.Visuals.Triggers;
 using MediaPortal.UI.SkinEngine.InputManagement;
+using MediaPortal.UI.SkinEngine.MpfElements;
+using MediaPortal.UI.SkinEngine.MpfElements.Resources;
 using MediaPortal.UI.SkinEngine.Rendering;
 using MediaPortal.UI.SkinEngine.SkinManagement;
 using MediaPortal.UI.SkinEngine.Xaml.Interfaces;
@@ -85,7 +87,7 @@ namespace MediaPortal.UI.SkinEngine.ScreenManagement
   /// <summary>
   /// Screen class respresenting a logical screen represented by a particular skin.
   /// </summary>
-  public class Screen : UIElement, INameScope, IAddChild<FrameworkElement>
+  public class Screen : UIElement, INameScope, IAddChild<FrameworkElement>, IUnmodifiableResource
   {
     #region Consts
 
@@ -170,7 +172,6 @@ namespace MediaPortal.UI.SkinEngine.ScreenManagement
     protected int _skinWidth;
     protected int _skinHeight;
     protected bool _hasBackground = true;
-    // TODO: Replace by OrderedDictionary when we move to .net 4
     protected IDictionary<SetFocusPriority, ScheduledFocus> _scheduledFocus = new Dictionary<SetFocusPriority, ScheduledFocus>();
 
     /// <summary>
@@ -398,11 +399,7 @@ namespace MediaPortal.UI.SkinEngine.ScreenManagement
         if (_root.IsMeasureInvalid || _root.IsArrangeInvalid)
           _root.UpdateLayoutRoot(new SizeF(SkinWidth, SkinHeight));
         HandleScheduledFocus();
-        if (_pendingScreenEvent != null)
-        {
-          DoFireScreenEvent(_pendingScreenEvent);
-          _pendingScreenEvent = null;
-        }
+        CheckPendingScreenEvent();
         _root.Render(_renderContext);
       }
     }
@@ -466,6 +463,7 @@ namespace MediaPortal.UI.SkinEngine.ScreenManagement
 
     public void Close()
     {
+      CheckPendingScreenEvent();
       ScreenState = State.Closed;
       SkinContext.WindowSizeProperty.Detach(OnWindowSizeChanged);
       lock (_syncObj)
@@ -501,6 +499,14 @@ namespace MediaPortal.UI.SkinEngine.ScreenManagement
       ClosedEventDlgt dlgt = Closed;
       if (dlgt != null)
         dlgt(this);
+    }
+
+    public void CheckPendingScreenEvent()
+    {
+      if (_pendingScreenEvent == null)
+        return;
+      DoFireScreenEvent(_pendingScreenEvent);
+      _pendingScreenEvent = null;
     }
 
     protected bool PretendMouseMove()
@@ -761,7 +767,6 @@ namespace MediaPortal.UI.SkinEngine.ScreenManagement
       _focusedElement = focusedElement;
       _lastFocusRect = focusedElement.ActualBounds;
       focusedElement.FireEvent(FrameworkElement.GOTFOCUS_EVENT, RoutingStrategyEnum.Bubble);
-      return;
     }
 
     /// <summary>
@@ -890,6 +895,22 @@ namespace MediaPortal.UI.SkinEngine.ScreenManagement
       SetScreen(this);
       ScreenState = _state; // Set the visual's element state via our ScreenState setter
       InitializeTriggers();
+    }
+
+    #endregion
+
+    #region IUnmodifiableResource implementation
+
+    /// <summary>
+    /// The screen is an exception case concerning the ownership and the disposal. <see cref="Screen"/> instances don't take part
+    /// in the automatic resource disposal for UI elements, they are owned by the screen manager service. That's why we "fake" its
+    /// owner by returning the screen instance itself. Together with the owner check in class <see cref="MPF"/>, this avoids
+    /// an unwanted disposal of <see cref="Screen"/> instances when they are handled by bindings or the animator or something.
+    /// </summary>
+    public object Owner
+    {
+      get { return this; }
+      set { }
     }
 
     #endregion

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -87,8 +87,8 @@ namespace MediaPortal.UiComponents.Media.Actions
         PlayerManagerMessaging.MessageType messageType = (PlayerManagerMessaging.MessageType) message.MessageType;
         switch (messageType)
         {
-          case PlayerManagerMessaging.MessageType.PlayerSlotActivated:
-          case PlayerManagerMessaging.MessageType.PlayerSlotDeactivated:
+          case PlayerManagerMessaging.MessageType.PlayerSlotStarted:
+          case PlayerManagerMessaging.MessageType.PlayerSlotClosed:
             Update();
             break;
         }

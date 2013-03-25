@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -27,12 +27,12 @@ using MediaPortal.Common;
 using MediaPortal.Common.ResourceAccess;
 using MediaPortal.Common.Settings;
 using MediaPortal.Extensions.ResourceProviders.AudioCDResourceProvider;
-using Ui.Players.BassPlayer.InputSources;
-using Ui.Players.BassPlayer.Interfaces;
-using Ui.Players.BassPlayer.Settings;
-using Ui.Players.BassPlayer.Utils;
+using MediaPortal.UI.Players.BassPlayer.InputSources;
+using MediaPortal.UI.Players.BassPlayer.Interfaces;
+using MediaPortal.UI.Players.BassPlayer.Settings;
+using MediaPortal.UI.Players.BassPlayer.Utils;
 
-namespace Ui.Players.BassPlayer.PlayerComponents
+namespace MediaPortal.UI.Players.BassPlayer.PlayerComponents
 {
   /// <summary>
   /// Creates inputsource objects.
@@ -61,31 +61,37 @@ namespace Ui.Players.BassPlayer.PlayerComponents
     {
       if (!CanPlay(resourceLocator, mimeType))
         return null;
-      IResourceAccessor accessor = resourceLocator.CreateAccessor();
       IInputSource result;
-      AudioCDResourceAccessor acdra = accessor as AudioCDResourceAccessor;
-      if (acdra != null)
-        result = BassCDTrackInputSource.Create(acdra.Drive, acdra.TrackNo);
-      else
+      using (IResourceAccessor accessor = resourceLocator.CreateAccessor())
       {
-        string filePath = accessor.ResourcePathName;
-        if (URLUtils.IsCDDA(filePath))
-        {
-          ILocalFsResourceAccessor lfra = accessor as ILocalFsResourceAccessor;
-          if (lfra == null)
-            return null;
-          result = BassFsCDTrackInputSource.Create(lfra.LocalFileSystemPath);
-        }
-        else if (URLUtils.IsMODFile(filePath))
-          result = BassMODFileInputSource.Create(accessor);
+        AudioCDResourceAccessor acdra = accessor as AudioCDResourceAccessor;
+        if (acdra != null)
+          result = BassCDTrackInputSource.Create(acdra.Drive, acdra.TrackNo);
         else
-          result = BassAudioFileInputSource.Create(accessor);
-        // TODO: Handle web streams when we have resource accessors for web URLs: BassWebStreamInputSource.Create(...);
+        {
+          string filePath = accessor.ResourcePathName;
+          if (URLUtils.IsCDDA(filePath))
+          {
+            ILocalFsResourceAccessor lfra = accessor as ILocalFsResourceAccessor;
+            if (lfra == null)
+              return null;
+            result = BassFsCDTrackInputSource.Create(lfra.LocalFileSystemPath);
+          }
+          else
+          {
+            IFileSystemResourceAccessor fsra = accessor as ILocalFsResourceAccessor;
+            if (fsra == null)
+              return null;
+            if (URLUtils.IsMODFile(filePath))
+              result = BassMODFileInputSource.Create(fsra);
+            else
+              result = BassAudioFileInputSource.Create(fsra);
+          }
+          // TODO: Handle web streams when we have resource accessors for web URLs: BassWebStreamInputSource.Create(...);
+        }
+        Log.Debug("InputSourceFactory: Creating input source for media resource '{0}' of type '{1}'", accessor, result.GetType());
       }
 
-      accessor.PrepareStreamAccess();
-
-      Log.Debug("InputSourceFactory: Creating input source for media resource '{0}' of type '{1}'", accessor, result.GetType());
       return result;
     }
 

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -381,14 +381,12 @@ namespace UPnP.Infrastructure.CP
         }
         // Url didn't match
         context.Respond(HttpHelper.HTTP11, HttpStatusCode.NotFound, null);
-        return;
       }
       catch (Exception) // Don't log the exception here - we don't care about not being able to send the return value to the client
       {
         IHttpResponse response = request.CreateResponse(context);
         response.Status = HttpStatusCode.InternalServerError;
         response.Send();
-        return;
       }
     }
 

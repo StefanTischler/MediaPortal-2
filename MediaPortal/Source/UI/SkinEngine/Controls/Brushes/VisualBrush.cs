@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -108,8 +108,7 @@ namespace MediaPortal.UI.SkinEngine.Controls.Brushes
 
     void UpdateRenderTarget(FrameworkElement fe)
     {
-      RectangleF bounds = new RectangleF(new PointF(0.0f, 0.0f), _vertsBounds.Size);
-      fe.RenderToSurface(_visualSurface, new RenderContext(Matrix.Identity, Opacity, bounds, 1.0f));
+      fe.RenderToSurface(_visualSurface, new RenderContext(Matrix.Identity, Opacity, new RectangleF(new PointF(0.0f, 0.0f), _vertsBounds.Size), 1.0f));
 
       // Unfortunately, brushes/brush effects are based on textures and cannot work with surfaces, so we need this additional copy step
       GraphicsDevice.Device.StretchRectangle(

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -178,6 +178,23 @@ namespace MediaPortal.Common.ResourceAccess
     public bool IsAbsolute
     {
       get { return _pathSegments.Count > 0 && _pathSegments[0].IsBaseSegment; }
+    }
+
+    /// <summary>
+    /// Returns the information if this resource path points to an URL accessible network resource for which an <see cref="INetworkResourceAccessor"/>
+    /// can be created locally.
+    /// </summary>
+    public bool IsNetworkResource
+    {
+      get
+      {
+        if (_pathSegments.Count == 0)
+          return false;
+        ProviderPathSegment pathSegment = _pathSegments[0];
+        IMediaAccessor mediaAccessor = ServiceRegistration.Get<IMediaAccessor>();
+        IResourceProvider resourceProvider;
+        return mediaAccessor.LocalResourceProviders.TryGetValue(pathSegment.ProviderId, out resourceProvider) && resourceProvider.Metadata.NetworkResource;
+      }
     }
 
     /// <summary>
@@ -393,8 +410,11 @@ namespace MediaPortal.Common.ResourceAccess
             IChainedResourceProvider chainedProvider = resourceProvider as IChainedResourceProvider;
             if (chainedProvider == null)
               throw new IllegalCallException("The resource provider with id '{0}' does not implement the {1} interface", pathSegment.ProviderId, typeof(IChainedResourceProvider).Name);
-            IResourceAccessor chainedRa;
-            if (!chainedProvider.TryChainUp(resourceAccessor, pathSegment.Path, out chainedRa))
+            IFileSystemResourceAccessor fsra = resourceAccessor as IFileSystemResourceAccessor;
+            if (fsra == null)
+              throw new IllegalCallException("Cannot chain up a resource provider to resource of type {0} (Path: '{1}')", resourceAccessor.GetType(), ToString());
+            IFileSystemResourceAccessor chainedRa;
+            if (!chainedProvider.TryChainUp(fsra, pathSegment.Path, out chainedRa))
             {
               resourceAccessor.Dispose();
               result = null;

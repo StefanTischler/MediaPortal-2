@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -135,7 +135,7 @@ namespace MediaPortal.Common.Services.Logging
       messageBuilder.Append(": ");
       messageBuilder.Append(message);
 
-      Write(messageBuilder.ToString(), _alwaysFlush ? true : messageLevel == LogLevel.Critical);
+      Write(messageBuilder.ToString(), _alwaysFlush || messageLevel == LogLevel.Critical);
     }
 
     protected void Write(string message)

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -20,7 +20,7 @@
     along with MediaPortal 2. If not, see <http://www.gnu.org/licenses/>.
 */
 
-    #endregion
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -77,7 +77,7 @@ namespace MediaPortal.UI.SkinEngine.ContentManagement.AssetCore
           Width = MAX_WIDTH,
           Height = MAX_HEIGHT
         };
-      _charSet.Base = _charSet.RenderedSize * face.ascender / face.height;
+      _charSet.Ascender = _charSet.RenderedSize * face.ascender / face.height;
     }
 
     #endregion
@@ -85,7 +85,15 @@ namespace MediaPortal.UI.SkinEngine.ContentManagement.AssetCore
     #region Public properties
 
     /// <summary>
-    /// Get the size of this <see cref="FontAssetCore"/> in pixels.
+    /// Returns the font family used by this <see cref="FontAssetCore"/>.
+    /// </summary>
+    public FontFamily FontFamily
+    {
+      get { return _family; }
+    }
+
+    /// <summary>
+    /// Get the size of the font used by this <see cref="FontAssetCore"/> in pixels.
     /// </summary>
     public float Size
     {
@@ -93,11 +101,11 @@ namespace MediaPortal.UI.SkinEngine.ContentManagement.AssetCore
     }
 
     /// <summary>
-    /// Gets the <see cref="FontAssetCore"/>'s base for the given font size.
+    /// Gets the <see cref="FontAssetCore"/>'s ascender for the given font size.
     /// </summary>
-    public float Base(float fontSize)
+    public float Ascender(float fontSize)
     {
-      return _charSet.Base * fontSize / _charSet.RenderedSize;
+      return _charSet.Ascender * fontSize / _charSet.RenderedSize;
     }
 
     /// <summary>
@@ -184,18 +192,21 @@ namespace MediaPortal.UI.SkinEngine.ContentManagement.AssetCore
 
     /// <summary>
     /// Get the height of a text block containing the specified number of lines. In order to get correct vertical 
-    /// centering we add an additonal value to compensate for the space required under the font's base line.
+    /// centering we add an additonal value of the font face descender above the text to compensate for the space required
+    /// under the font's base line for the last text line.
     /// </summary>
     /// <param name="fontSize">The actual font size.</param>
     /// <param name="lineCount">The number of lines.</param>
-    /// <returns>The height of the text.</returns>
+    /// <returns>The height which is needed to draw the text.</returns>
     public float TextHeight(float fontSize, int lineCount)
     {
-      return LineHeight(fontSize) * (lineCount + 1) - Base(fontSize) - 1.0f;
+      // To center text which is one or more lines in height, we add the value of the font face descender to the expression <lineHeight * lineCount>.
+      // The value of descender is <lineHeight - ascender>. Together, it is <lineHeight * (lineCount + 1) - ascender>.
+      return LineHeight(fontSize) * (lineCount + 1) - Ascender(fontSize) + 1f;
     }
 
     /// <summary>
-    /// Gets the font texture.
+    /// Gets the texture containing all characters of this <see cref="FontAssetCore"/>.
     /// </summary>
     public Texture Texture
     {
@@ -330,7 +341,7 @@ namespace MediaPortal.UI.SkinEngine.ContentManagement.AssetCore
             X = _currentX,
             Y = _currentY,
             XOffset = glyph.left,
-            YOffset = _charSet.Base - glyph.top,
+            YOffset = _charSet.Ascender - glyph.top,
             // Convert fixed point 16.16 to float by divison with 2^16
             XAdvance = (int) (glyph.root.advance.x / 65536.0f)
           };
@@ -374,7 +385,10 @@ namespace MediaPortal.UI.SkinEngine.ContentManagement.AssetCore
 
     #region Text creation
 
-    /// <summary>Adds a new string to the list to render.</summary>
+    /// <summary>
+    /// Creates an array of <see cref="PositionColoredTextured"/> objects representing the character positions of the
+    /// given <paramref name="text"/> for the given parameters in the underlaying <see cref="Texture"/>.
+    /// </summary>
     /// <param name="text">Text to render.</param>
     /// <param name="size">Font size.</param>
     /// <param name="kerning">True to use kerning, false otherwise.</param>
@@ -388,7 +402,9 @@ namespace MediaPortal.UI.SkinEngine.ContentManagement.AssetCore
 
       List<PositionColoredTextured> verts = new List<PositionColoredTextured>();
       float[] lineWidth = new float[text.Length];
-      int liney = _charSet.RenderedSize - _charSet.Base;
+
+      // We add the value of the descender to the top of the text to center the text around its ascender
+      int liney = _charSet.RenderedSize - _charSet.Ascender;
       float sizeScale = size / _charSet.RenderedSize;
 
       lineIndex = new int[text.Length];
@@ -405,7 +421,7 @@ namespace MediaPortal.UI.SkinEngine.ContentManagement.AssetCore
       textSize = new SizeF(0.0f, verts[verts.Count - 1].Y);
 
       // Stores the line widths as the Z coordinate of the verices. This means alignment
-      // can be performed by a vertex shader durng rendering
+      // can be performed by a vertex shader during rendering
       PositionColoredTextured[] vertArray = verts.ToArray();
       for (int i = 0; i < lineIndex.Length; ++i)
       {
@@ -438,11 +454,11 @@ namespace MediaPortal.UI.SkinEngine.ContentManagement.AssetCore
             CreateQuad(c, sizeScale, x, y, ref verts);
           x += c.XAdvance;
         }
-        // Make sure there is a t least one character
+        // Make sure there is at least one character
         if (verts.Count == 0)
         {
           BitmapCharacter c = Character(' ');
-          CreateQuad(c, sizeScale, c.XOffset, c.YOffset, ref verts);
+          CreateQuad(c, sizeScale, c.XOffset, y, ref verts);
         }
         return x*sizeScale;
       }
@@ -453,7 +469,9 @@ namespace MediaPortal.UI.SkinEngine.ContentManagement.AssetCore
       x += c.XOffset;
       y += c.YOffset;
       PositionColoredTextured tl = new PositionColoredTextured(
-          x * sizeScale, y * sizeScale, 1.0f,
+          x * sizeScale,
+          y * sizeScale,
+          1.0f,
           (c.X + 0.5f) / _charSet.Width,
           c.Y / (float) _charSet.Height,
           0
@@ -498,7 +516,7 @@ namespace MediaPortal.UI.SkinEngine.ContentManagement.AssetCore
 
     protected int GetKerningAmount(BitmapCharacter first, char second)
     {
-      Kerning result = first.KerningList.Where(node => node.Second == second).FirstOrDefault();
+      Kerning result = first.KerningList.FirstOrDefault(node => node.Second == second);
       return result == null ? 0 : result.Amount;
     }
     #endregion
@@ -534,11 +552,11 @@ namespace MediaPortal.UI.SkinEngine.ContentManagement.AssetCore
   }
 
   /// <summary>
-  /// Represents a single bitmap character set.
+  /// Represents the coordinates of all bitmap characters of a character set based on a texture containing all character glyphs.
   /// </summary>
   internal class BitmapCharacterSet
   {
-    public int Base;
+    public int Ascender;
     public int RenderedSize;
     public int Width;
     public int Height;
@@ -574,7 +592,7 @@ namespace MediaPortal.UI.SkinEngine.ContentManagement.AssetCore
   }
 
   /// <summary>
-  /// Represents a single bitmap character.
+  /// Represents the coordinates of a single bitmap character based on a texture containing all character glyphs.
   /// </summary>
   public class BitmapCharacter : ICloneable
   {

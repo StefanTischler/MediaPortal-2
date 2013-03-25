@@ -1,7 +1,7 @@
-﻿#region Copyright (C) 2007-2012 Team MediaPortal
+﻿#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -91,13 +91,13 @@ namespace MediaPortal.Extensions.OnlineLibraries.Libraries.MovieDbV3.Data
     public bool Adult { get; set; }
     
     [DataMember(Name = "imdb_id")]
-    public string ImdbId { get; set; }    
+    public string ImdbId { get; set; }
     
     [DataMember(Name = "overview")]
-    public string Overview { get; set; }    
+    public string Overview { get; set; }
     
     [DataMember(Name = "tagline")]
-    public string Tagline { get; set; }    
+    public string Tagline { get; set; }
 
     [DataMember(Name = "revenue")]
     public long? Revenue { get; set; }
@@ -113,6 +113,9 @@ namespace MediaPortal.Extensions.OnlineLibraries.Libraries.MovieDbV3.Data
     
     [DataMember(Name = "homepage")]
     public string Homepage { get; set; }
+
+    [DataMember(Name = "belongs_to_collection")]
+    public MovieCollection Collection { get; set; }
 
     [DataMember(Name = "genres")]
     public List<Genre> Genres { get; set; }

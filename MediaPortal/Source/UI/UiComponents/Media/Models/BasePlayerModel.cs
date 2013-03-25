@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -45,7 +45,7 @@ namespace MediaPortal.UiComponents.Media.Models
     protected bool _backgroundDisabled = false;
     protected IPlayer _oldPlayer;
 
-    protected BasePlayerModel(Guid currentlyPlayingWorkflowStateId, Guid fullscreenContentWorkflowStateId) : base(300)
+    protected BasePlayerModel(Guid currentlyPlayingWorkflowStateId, Guid fullscreenContentWorkflowStateId) : base(false, 300)
     {
       _playerUIContributorProperty = new WProperty(typeof(IPlayerUIContributor));
       _currentlyPlayingWorkflowStateId = currentlyPlayingWorkflowStateId;
@@ -172,7 +172,7 @@ namespace MediaPortal.UiComponents.Media.Models
         return playerContextManager.CurrentPlayerContext;
       if (stateType == MediaWorkflowStateType.FullscreenContent)
         // The "fullscreen content" screen is always bound to the "primary player"
-        return playerContextManager.GetPlayerContext(PlayerManagerConsts.PRIMARY_SLOT);
+        return playerContextManager.PrimaryPlayerContext;
       return null;
     }
 

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -25,17 +25,17 @@
 using System;
 using MediaPortal.Common.ResourceAccess;
 
-namespace Ui.Players.BassPlayer.InputSources
+namespace MediaPortal.UI.Players.BassPlayer.InputSources
 {
   public abstract class AbstractBassResourceInputSource : IDisposable
   {
     #region Protected fields
 
-    protected IResourceAccessor _accessor = null;
+    protected IFileSystemResourceAccessor _accessor = null;
 
     #endregion
 
-    protected AbstractBassResourceInputSource(IResourceAccessor resourceAccessor)
+    protected AbstractBassResourceInputSource(IFileSystemResourceAccessor resourceAccessor)
     {
       _accessor = resourceAccessor;
     }

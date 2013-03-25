@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -27,7 +27,6 @@ using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
 using MediaPortal.Common;
-using MediaPortal.Common.Messaging;
 using MediaPortal.Common.Runtime;
 using MediaPortal.UI.Control.InputManager;
 using MediaPortal.Common.Logging;
@@ -35,6 +34,7 @@ using MediaPortal.UI.General;
 using MediaPortal.Common.Settings;
 using MediaPortal.UI.Presentation.Players;
 using MediaPortal.UI.Presentation.Screens;
+using MediaPortal.UI.Services.Players.VideoPlayerSynchronizationStrategies;
 using MediaPortal.UI.SkinEngine.DirectX;
 using MediaPortal.UI.SkinEngine.InputManagement;
 using MediaPortal.UI.SkinEngine.Players;
@@ -71,6 +71,7 @@ namespace MediaPortal.UI.SkinEngine.GUI
     private readonly AutoResetEvent _videoRenderFrameEvent = new AutoResetEvent(false);
     private readonly AutoResetEvent _renderFinishedEvent = new AutoResetEvent(false);
     private bool _videoPlayerSuspended = false;
+    private IVideoPlayerSynchronizationStrategy _videoPlayerSynchronizationStrategy = null;
     private Size _previousWindowClientSize;
     private Point _previousWindowLocation;
     private FormWindowState _previousWindowState;
@@ -90,7 +91,6 @@ namespace MediaPortal.UI.SkinEngine.GUI
     protected TimeSpan _screenSaverTimeOut;
     protected bool _mouseHidden = false;
     private readonly object _reclaimDeviceSyncObj = new object();
-    private readonly AsynchronousMessageQueue _messageQueue;
 
     private bool _adaptToSizeEnabled;
 
@@ -136,54 +136,20 @@ namespace MediaPortal.UI.SkinEngine.GUI
       Application.Idle += OnApplicationIdle;
       _adaptToSizeEnabled = true;
 
-      _messageQueue = new AsynchronousMessageQueue(this, new string[]
-        {
-            PlayerManagerMessaging.CHANNEL,
-        });
-      _messageQueue.MessageReceived += OnMessageReceived;
-      _messageQueue.Start();
-    }
-
-    private void OnMessageReceived(AsynchronousMessageQueue queue, SystemMessage message)
-    {
-      if (message.ChannelName == PlayerManagerMessaging.CHANNEL)
-      {
-        PlayerManagerMessaging.MessageType messageType = (PlayerManagerMessaging.MessageType) message.MessageType;
-        switch (messageType)
-        {
-          case PlayerManagerMessaging.MessageType.PlayerStarted:
-          case PlayerManagerMessaging.MessageType.PlayerStopped:
-          case PlayerManagerMessaging.MessageType.PlayerEnded:
-          case PlayerManagerMessaging.MessageType.PlayerSlotsChanged:
-            {
-              IPlayerManager playerManager = ServiceRegistration.Get<IPlayerManager>();
-              ISlimDXVideoPlayer player = playerManager[PlayerManagerConsts.PRIMARY_SLOT] as ISlimDXVideoPlayer;
-              UpdateVideoPlayerState(player);
-              SynchronizeToVideoPlayerFramerate(player);
-              break;
-            }
-          case PlayerManagerMessaging.MessageType.PlaybackStateChanged:
-            {
-              IPlayerManager playerManager = ServiceRegistration.Get<IPlayerManager>();
-              ISlimDXVideoPlayer player = playerManager[PlayerManagerConsts.PRIMARY_SLOT] as ISlimDXVideoPlayer;
-              UpdateVideoPlayerState(player);
-              break;
-            }
-        }
-      }
+      VideoPlayerSynchronizationStrategy = new SynchronizeToPrimaryPlayer();
     }
 
     /// <summary>
-    /// Updates the local state corresponding to the current video player, given in parameter <paramref name="slimDxPlayer"/>.
+    /// Updates the local state corresponding to the current video player, given in parameter <paramref name="videoPlayer"/>.
     /// This method will check if the given player is suspended (i.e. it is paused). It will also update the thread state so that the system
     /// won't shut down while playing a video.
     /// </summary>
-    /// <param name="slimDxPlayer">Player to check.</param>
-    private void UpdateVideoPlayerState(ISlimDXVideoPlayer slimDxPlayer)
+    /// <param name="videoPlayer">Player to check.</param>
+    private void UpdateVideoPlayerState(IVideoPlayer videoPlayer)
     {
-      IMediaPlaybackControl player = slimDxPlayer as IMediaPlaybackControl;
+      IMediaPlaybackControl player = videoPlayer as IMediaPlaybackControl;
       _videoPlayerSuspended = player == null || player.IsPaused;
-      PlayerSuspendLevel = slimDxPlayer == null ? SuspendLevel.None : SuspendLevel.DisplayRequired;
+      PlayerSuspendLevel = videoPlayer == null ? SuspendLevel.None : SuspendLevel.DisplayRequired;
     }
 
     public SuspendLevel PlayerSuspendLevel
@@ -342,7 +308,7 @@ namespace MediaPortal.UI.SkinEngine.GUI
       SkinContext.RenderThread = null;
     }
 
-    private void SynchronizeToVideoPlayerFramerate(ISlimDXVideoPlayer videoPlayer)
+    private void SynchronizeToVideoPlayerFramerate(IVideoPlayer videoPlayer)
     {
       lock (_screenManager.SyncObj)
       {
@@ -352,15 +318,16 @@ namespace MediaPortal.UI.SkinEngine.GUI
         _synchronizedVideoPlayer = null;
         if (oldPlayer != null)
           oldPlayer.SetRenderDelegate(null);
-        if (videoPlayer != null)
-          if (videoPlayer.SetRenderDelegate(VideoPlayerRender))
+        ISlimDXVideoPlayer slimDxVideoPlayer = videoPlayer as ISlimDXVideoPlayer;
+        if (slimDxVideoPlayer != null)
+          if (slimDxVideoPlayer.SetRenderDelegate(VideoPlayerRender))
           {
-            _synchronizedVideoPlayer = videoPlayer;
-            ServiceRegistration.Get<ILogger>().Info("SkinEngine MainForm: Synchronized render framerate to video player '{0}'", videoPlayer);
+            _synchronizedVideoPlayer = slimDxVideoPlayer;
+            ServiceRegistration.Get<ILogger>().Info("SkinEngine MainForm: Synchronized render framerate to video player '{0}'", slimDxVideoPlayer);
           }
           else
             ServiceRegistration.Get<ILogger>().Info(
-                "SkinEngine MainForm: Video player '{0}' doesn't provide render thread synchronization, using default framerate", videoPlayer);
+                "SkinEngine MainForm: Video player '{0}' doesn't provide render thread synchronization, using default framerate", slimDxVideoPlayer);
       }
     }
 
@@ -412,7 +379,7 @@ namespace MediaPortal.UI.SkinEngine.GUI
 
     public void Shutdown()
     {
-      _messageQueue.Shutdown();
+      VideoPlayerSynchronizationStrategy = null; // Stops the strategy component
       Close();
       _videoRenderFrameEvent.Close();
     }
@@ -543,6 +510,27 @@ namespace MediaPortal.UI.SkinEngine.GUI
       }
     }
 
+    public IVideoPlayerSynchronizationStrategy VideoPlayerSynchronizationStrategy
+    {
+      get { return _videoPlayerSynchronizationStrategy; }
+      set
+      {
+        if (_videoPlayerSynchronizationStrategy != null)
+        {
+          _videoPlayerSynchronizationStrategy.Stop();
+          _videoPlayerSynchronizationStrategy.UpdateVideoPlayerState -= UpdateVideoPlayerState;
+          _videoPlayerSynchronizationStrategy.SynchronizeToVideoPlayerFramerate -= SynchronizeToVideoPlayerFramerate;
+        }
+        _videoPlayerSynchronizationStrategy = value;
+        if (_videoPlayerSynchronizationStrategy != null)
+        {
+          _videoPlayerSynchronizationStrategy.UpdateVideoPlayerState += UpdateVideoPlayerState;
+          _videoPlayerSynchronizationStrategy.SynchronizeToVideoPlayerFramerate += SynchronizeToVideoPlayerFramerate;
+          _videoPlayerSynchronizationStrategy.Start();
+        }
+      }
+    }
+
     protected static string ToString(DisplayMode mode)
     {
       return string.Format("{0}x{1}@{2}", mode.Width, mode.Height, mode.RefreshRate);
@@ -558,9 +546,8 @@ namespace MediaPortal.UI.SkinEngine.GUI
         bool wasScreenSaverActive = _isScreenSaverActive;
         if (_isScreenSaverEnabled)
         {
-          IPlayerManager playerManager = ServiceRegistration.Get<IPlayerManager>();
           IPlayerContextManager playerContextManager = ServiceRegistration.Get<IPlayerContextManager>();
-          IPlayer primaryPlayer = playerManager[PlayerManagerConsts.PRIMARY_SLOT];
+          IPlayer primaryPlayer = playerContextManager[PlayerContextIndex.PRIMARY];
           IMediaPlaybackControl mbc = primaryPlayer as IMediaPlaybackControl;
           bool preventScreenSaver = ((primaryPlayer is IVideoPlayer || primaryPlayer is IImagePlayer) && (mbc == null || !mbc.IsPaused)) ||
               playerContextManager.IsFullscreenContentWorkflowStateActive;

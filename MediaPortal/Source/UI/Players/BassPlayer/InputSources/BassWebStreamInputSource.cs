@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -23,11 +23,11 @@
 #endregion
 
 using System;
-using Ui.Players.BassPlayer.Interfaces;
-using Ui.Players.BassPlayer.Utils;
+using MediaPortal.UI.Players.BassPlayer.Interfaces;
+using MediaPortal.UI.Players.BassPlayer.Utils;
 using Un4seen.Bass;
 
-namespace Ui.Players.BassPlayer.InputSources
+namespace MediaPortal.UI.Players.BassPlayer.InputSources
 {
   /// <summary>
   /// Represents a file inputsource.
@@ -53,7 +53,7 @@ namespace Ui.Players.BassPlayer.InputSources
     #region Fields
 
     private readonly string _url;
-    private BassStream _BassStream;
+    private BassStream _bassStream;
 
     #endregion
 
@@ -71,12 +71,12 @@ namespace Ui.Players.BassPlayer.InputSources
 
     public BassStream OutputStream
     {
-      get { return _BassStream; }
+      get { return _bassStream; }
     }
 
     public TimeSpan Length
     {
-      get { return _BassStream.Length; }
+      get { return _bassStream.Length; }
     }
 
     #endregion
@@ -85,8 +85,8 @@ namespace Ui.Players.BassPlayer.InputSources
 
     public void Dispose()
     {
-      if (_BassStream != null)
-        _BassStream.Dispose();
+      if (_bassStream != null)
+        _bassStream.Dispose();
     }
 
     #endregion
@@ -116,7 +116,7 @@ namespace Ui.Players.BassPlayer.InputSources
       if (handle == BassConstants.BassInvalidHandle)
         throw new BassLibraryException("BASS_MusicLoad");
 
-      _BassStream = BassStream.Create(handle);
+      _bassStream = BassStream.Create(handle);
     }
 
     #endregion

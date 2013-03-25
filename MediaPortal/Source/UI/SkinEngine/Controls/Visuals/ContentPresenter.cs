@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -27,7 +27,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using MediaPortal.Common.General;
 using MediaPortal.UI.SkinEngine.Controls.Visuals.Templates;
-using MediaPortal.UI.SkinEngine.Controls.Visuals.Triggers;
 using MediaPortal.UI.SkinEngine.MpfElements;
 using MediaPortal.UI.SkinEngine.Rendering;
 using MediaPortal.UI.SkinEngine.Xaml;
@@ -66,6 +65,7 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
 
     void Attach()
     {
+      _contentProperty.Attach(OnContentChanged);
       _contentTemplateProperty.Attach(OnContentTemplateChanged);
       _horizontalContentAlignmentProperty.Attach(OnArrangeGetsInvalid);
       _verticalContentAlignmentProperty.Attach(OnArrangeGetsInvalid);
@@ -73,6 +73,7 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
 
     void Detach()
     {
+      _contentProperty.Detach(OnContentChanged);
       _contentTemplateProperty.Detach(OnContentTemplateChanged);
       _horizontalContentAlignmentProperty.Detach(OnArrangeGetsInvalid);
       _verticalContentAlignmentProperty.Detach(OnArrangeGetsInvalid);
@@ -103,10 +104,9 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
 
     #endregion
 
-    internal void SetContent(object content)
+    internal void OnContentChanged(AbstractProperty prop, object oldValue)
     {
-      object oldValue = Content;
-      Content = content;
+      object content = Content;
       MPF.TryCleanupAndDispose(oldValue);
       if (!ReferenceEquals(oldValue, _convertedContent))
         MPF.TryCleanupAndDispose(_convertedContent);
@@ -246,10 +246,11 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
 
     protected override SizeF CalculateInnerDesiredSize(SizeF totalSize)
     {
-      if (_templateControl == null)
+      FrameworkElement templateControl = _templateControl;
+      if (templateControl == null)
         return SizeF.Empty;
       // Measure the child
-      _templateControl.Measure(ref totalSize);
+      templateControl.Measure(ref totalSize);
       return totalSize;
     }
 
@@ -261,28 +262,31 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
 
     protected virtual void ArrangeTemplateControl()
     {
-      if (_templateControl == null)
+      FrameworkElement templateControl = _templateControl;
+      if (templateControl == null)
         return;
       PointF position = new PointF(_innerRect.X, _innerRect.Y);
       SizeF availableSize = new SizeF(_innerRect.Width, _innerRect.Height);
-      ArrangeChild(_templateControl, HorizontalContentAlignment, VerticalContentAlignment,
+      ArrangeChild(templateControl, HorizontalContentAlignment, VerticalContentAlignment,
           ref position, ref availableSize);
       RectangleF childRect = new RectangleF(position, availableSize);
-      _templateControl.Arrange(childRect);
+      templateControl.Arrange(childRect);
     }
 
-    public override void DoRender(RenderContext localRenderContext)
+    public override void RenderOverride(RenderContext localRenderContext)
     {
-      base.DoRender(localRenderContext);
-      if (_templateControl != null)
-        _templateControl.Render(localRenderContext);
+      base.RenderOverride(localRenderContext);
+      FrameworkElement templateControl = _templateControl;
+      if (templateControl != null)
+        templateControl.Render(localRenderContext);
     }
 
     public override void AddChildren(ICollection<UIElement> childrenOut)
     {
       base.AddChildren(childrenOut);
-      if (_templateControl != null)
-        childrenOut.Add(_templateControl);
+      FrameworkElement templateControl = _templateControl;
+      if (templateControl != null)
+        childrenOut.Add(templateControl);
     }
 
     // Allocation/Deallocation of _templateControl not necessary because UIElement handles all direct children

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -390,7 +390,6 @@ namespace MediaPortal.UiComponents.PartyMusicPlayer.Models
     protected void PrepareState(NavigationContext oldContext, NavigationContext newContext, bool push)
     {
       Guid oldStateId = oldContext.WorkflowState.StateId;
-      Guid newStateId = newContext.WorkflowState.StateId;
       if (oldStateId == Consts.WF_STATE_ID_PARTY_MUSIC_PLAYER && !push)
         SavePlayRepeatMode();
     }

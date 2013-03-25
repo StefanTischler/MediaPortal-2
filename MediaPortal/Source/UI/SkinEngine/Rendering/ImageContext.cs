@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -260,11 +260,10 @@ namespace MediaPortal.UI.SkinEngine.Rendering
       return _rotation == RightAngledRotation.HalfPi || _rotation == RightAngledRotation.ThreeHalfPi ? new SizeF(size.Height, size.Width) : size;
     }
 
-    public void Clear()
+    public override void Clear()
     {
-      _effect = null;
+      base.Clear();
       _effectTransition = null;
-      _lastTexture = null;
     }
 
     #endregion

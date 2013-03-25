@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -47,8 +47,7 @@ namespace MediaPortal.UiComponents.Media.Models
 
     #region Constructor & maintainance
 
-    protected BaseVideoPlayerUIContributor()
-      : base(UPDATE_INTERVAL_MS)
+    protected BaseVideoPlayerUIContributor() : base(false, UPDATE_INTERVAL_MS)
     {
       _subtitlesAvailableProperty = new WProperty(typeof(bool), false);
       _chaptersAvailableProperty = new WProperty(typeof(bool), false);
@@ -309,7 +308,7 @@ namespace MediaPortal.UiComponents.Media.Models
     public virtual void ShowZoomModeDialog()
     {
       IPlayerContextManager pcm = ServiceRegistration.Get<IPlayerContextManager>();
-      IPlayerContext pc = pcm.GetPlayerContext(PlayerManagerConsts.PRIMARY_SLOT);
+      IPlayerContext pc = pcm.PrimaryPlayerContext;
       PlayerConfigurationDialogModel.OpenChooseGeometryDialog(pc);
     }
 
@@ -328,6 +327,5 @@ namespace MediaPortal.UiComponents.Media.Models
     {
       _chapterPlayer.NextChapter();
     }
-
   }
 }

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -22,7 +22,10 @@
 
 #endregion
 
+using System;
 using System.Linq;
+using MediaPortal.Common;
+using MediaPortal.Common.Logging;
 
 namespace MediaPortal.UI.SkinEngine.Controls.Animations
 {
@@ -38,11 +41,18 @@ namespace MediaPortal.UI.SkinEngine.Controls.Animations
 
     internal override void DoAnimation(TimelineContext context, uint reltime)
     {
-      base.DoAnimation(context, reltime);
-      TimelineGroupContext tgc = (TimelineGroupContext) context;
-      for (int i = 0; i < Children.Count; i++)
-        // Call Animate at the children, because the children have to do their own time management
-        Children[i].Animate(tgc[i], reltime);
+      try
+      {
+        base.DoAnimation(context, reltime);
+        TimelineGroupContext tgc = (TimelineGroupContext) context;
+        for (int i = 0; i < Children.Count; i++)
+          // Call Animate at the children, because the children have to do their own time management
+          Children[i].Animate(tgc[i], reltime);
+      }
+      catch (Exception ex)
+      {
+        ServiceRegistration.Get<ILogger>().Error("Error executing animation", ex);
+      }
     }
 
     public override bool HasEnded(TimelineContext context)

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -101,7 +101,7 @@ namespace MediaPortal.UiComponents.Media.Models
         PlayerManagerMessaging.MessageType messageType = (PlayerManagerMessaging.MessageType) message.MessageType;
         switch (messageType)
         {
-          case PlayerManagerMessaging.MessageType.PlayerSlotDeactivated:
+          case PlayerManagerMessaging.MessageType.PlayerSlotClosed:
             IPlayerContextManager playerContextManager = ServiceRegistration.Get<IPlayerContextManager>();
             ISystemStateService sss = ServiceRegistration.Get<ISystemStateService>() ;
             IPlayerContext pc = playerContextManager.GetPlayerContext(PlayerChoice.CurrentPlayer);
@@ -156,7 +156,7 @@ namespace MediaPortal.UiComponents.Media.Models
       IPlayerContextManager playerContextManager = ServiceRegistration.Get<IPlayerContextManager>();
       IPlayerContext pc = playerContextManager.GetPlayerContext(PlayerChoice.CurrentPlayer);
       IPlaylist playlist = pc == null ? null : pc.Playlist;
-      UpdatePlaylistHeader(pc == null ? null : (AVType?) pc.AVType, pc == null ? 0 : pc.PlayerSlotController.SlotIndex);
+      UpdatePlaylistHeader(pc == null ? null : (AVType?) pc.AVType, pc == null ? true : pc.IsPrimaryPlayerContext);
       lock (_syncObj)
       {
         // TODO: If playlist objects differ, leave state EditPlaylist?
@@ -175,7 +175,6 @@ namespace MediaPortal.UiComponents.Media.Models
 
             item.AdditionalProperties[Consts.KEY_IS_DOWN_BUTTON_FOCUSED] = i == _focusedDownButton;
             item.AdditionalProperties[Consts.KEY_IS_UP_BUTTON_FOCUSED] = i == _focusedUpButton;
-            item.AdditionalProperties[Consts.KEY_INDEX] = i;
             _items.Add(item);
           }
         }

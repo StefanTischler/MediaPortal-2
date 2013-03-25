@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -77,6 +77,8 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
       _contentProperty.Attach(OnContentChanged);
       _wrapProperty.Attach(OnLayoutPropertyChanged);
       _scrollProperty.Attach(OnLayoutPropertyChanged);
+      _scrollSpeedProperty.Attach(OnLayoutPropertyChanged);
+      _scrollDelayProperty.Attach(OnLayoutPropertyChanged);
 
       HorizontalAlignmentProperty.Attach(OnLayoutPropertyChanged);
       VerticalAlignmentProperty.Attach(OnLayoutPropertyChanged);
@@ -92,6 +94,8 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
       _contentProperty.Detach(OnContentChanged);
       _wrapProperty.Detach(OnLayoutPropertyChanged);
       _scrollProperty.Detach(OnLayoutPropertyChanged);
+      _scrollSpeedProperty.Detach(OnLayoutPropertyChanged);
+      _scrollDelayProperty.Detach(OnLayoutPropertyChanged);
 
       HorizontalAlignmentProperty.Detach(OnLayoutPropertyChanged);
       VerticalAlignmentProperty.Detach(OnLayoutPropertyChanged); 
@@ -113,6 +117,7 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
       Color = l.Color;
       Scroll = l.Scroll;
       ScrollDelay = l.ScrollDelay;
+      ScrollSpeed = l.ScrollSpeed;
       Wrap = l.Wrap;
 
       InitializeResourceString();
@@ -249,6 +254,7 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
 
     protected override SizeF CalculateInnerDesiredSize(SizeF totalSize)
     {
+      base.CalculateInnerDesiredSize(totalSize); // Needs to be called in each sub class of Control, see comment in Control.CalculateInnerDesiredSize()
       AllocFont();
 
       // Measure the text
@@ -269,9 +275,9 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
       return size;
     }
 
-    public override void DoRender(RenderContext localRenderContext)
+    public override void RenderOverride(RenderContext localRenderContext)
     {
-      base.DoRender(localRenderContext);
+      base.RenderOverride(localRenderContext);
 
       AllocFont();
 

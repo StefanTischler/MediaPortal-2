@@ -1,7 +1,7 @@
-﻿#region Copyright (C) 2007-2012 Team MediaPortal
+﻿#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -26,7 +26,7 @@ using System;
 using MediaPortal.Common.PluginManager;
 using MediaPortal.Common.Services.PluginManager.Builders;
 
-namespace MediaPortal.Plugins.SlimTvClient.Interfaces.Extensions
+namespace MediaPortal.Plugins.SlimTv.Interfaces.Extensions
 {
   /// <summary>
   /// Plugin item builder for <c>SlimTvProgramExtension</c> plugin items.

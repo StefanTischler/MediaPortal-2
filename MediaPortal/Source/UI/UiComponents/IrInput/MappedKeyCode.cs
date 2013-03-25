@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -78,31 +78,11 @@ namespace MediaPortal.UiComponents.IrInput
 
     #region Extra members for XML serialization
 
-    protected static string SerializeKey(Key key)
-    {
-      if (key.IsPrintableKey)
-        return "P:" + key.RawCode;
-      else if (key.IsSpecialKey)
-        return "S:" + key.Name;
-      else
-        throw new NotImplementedException(string.Format("Cannot serialize key '{0}', it is neither a printable nor a special key", key));
-    }
-
-    protected static Key DeserializeKey(string serializedKey)
-    {
-      if (serializedKey.StartsWith("P:"))
-        return new Key(serializedKey.Substring(2));
-      else if (serializedKey.StartsWith("S:"))
-        return Key.GetSpecialKeyByName(serializedKey.Substring(2));
-      else
-        throw new ArgumentException(string.Format("Key cannot be deserialized from '{0}', invalid format", serializedKey));
-    }
-
     [XmlAttribute]
     public string Key_Name
     {
-      get { return SerializeKey(_key); }
-      set { _key = DeserializeKey(value); }
+      get { return Key.SerializeKey(_key); }
+      set { _key = Key.DeserializeKey(value); }
     }
 
     #endregion

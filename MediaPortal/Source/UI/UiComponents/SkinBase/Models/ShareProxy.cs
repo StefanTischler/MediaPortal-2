@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -496,7 +496,7 @@ namespace MediaPortal.UiComponents.SkinBase.Models
     {
       ResourcePath choosenResourcePath = ChoosenResourcePath;
       ResourcePath path = choosenResourcePath;
-      bool result = path == null ? false : GetIsPathValid(choosenResourcePath);
+      bool result = path != null && GetIsPathValid(choosenResourcePath);
       if (SharePathExists(path))
       {
         InvalidShareHint = Consts.RES_SHARE_PATH_EXISTS;

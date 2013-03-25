@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -25,16 +25,16 @@
 using System;
 using System.Collections.Generic;
 using MediaPortal.Common;
-using MediaPortal.Plugins.SlimTvClient.Interfaces;
-using MediaPortal.Plugins.SlimTvClient.Interfaces.Items;
+using MediaPortal.Plugins.SlimTv.Interfaces;
+using MediaPortal.Plugins.SlimTv.Interfaces.Items;
 using MediaPortal.UI.Presentation.DataObjects;
 using MediaPortal.UI.Presentation.Models;
 using MediaPortal.UI.Presentation.Workflow;
 
-namespace MediaPortal.Plugins.SlimTvClient
+namespace MediaPortal.Plugins.SlimTv.Client.Models
 {
   /// <summary>
-  /// <see cref="SlimTvModelBase"/> provides basic features for all derived models, i.e. channel groupp and channel selection.
+  /// <see cref="SlimTvModelBase"/> provides basic features for all derived models, i.e. channel group and channel selection.
   /// </summary>
   public abstract class SlimTvModelBase : BaseTimerControlledModel, IWorkflowModel
   {
@@ -58,7 +58,7 @@ namespace MediaPortal.Plugins.SlimTvClient
     { }
 
     protected SlimTvModelBase(long updateInterval)
-      : base (updateInterval)
+      : base (true, updateInterval)
     { }
 
     #endregion
@@ -145,8 +145,11 @@ namespace MediaPortal.Plugins.SlimTvClient
     {
       if (_tvHandler == null)
       {
-        _tvHandler = ServiceRegistration.Get<ITvHandler>();
-        _tvHandler.Initialize();
+        ITvHandler tvHandler = ServiceRegistration.Get<ITvHandler>();
+        tvHandler.Initialize();
+        if (tvHandler.ChannelAndGroupInfo == null)
+          return;
+        _tvHandler = tvHandler;
       }
       _tvHandler.ChannelAndGroupInfo.GetChannelGroups(out _channelGroups);
 
@@ -223,12 +226,12 @@ namespace MediaPortal.Plugins.SlimTvClient
 
     public virtual bool CanEnterState(NavigationContext oldContext, NavigationContext newContext)
     {
-      return true;
+      InitModel();
+      return _tvHandler != null;
     }
 
     public virtual void EnterModelContext(NavigationContext oldContext, NavigationContext newContext)
     {
-      InitModel();
     }
 
     public virtual void ExitModelContext(NavigationContext oldContext, NavigationContext newContext)
@@ -254,18 +257,6 @@ namespace MediaPortal.Plugins.SlimTvClient
     public ScreenUpdateMode UpdateScreen(NavigationContext context, ref string screen)
     {
       return ScreenUpdateMode.AutoWorkflowManager;
-    }
-
-    #endregion
-
-    #region IDisposable Member
-
-    public override void Dispose()
-    {
-      base.Dispose();
-
-      if (_tvHandler != null)
-        _tvHandler.Dispose();
     }
 
     #endregion

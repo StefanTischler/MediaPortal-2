@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -24,7 +24,7 @@
 
 using MediaPortal.Common.Configuration.ConfigurationClasses;
 
-namespace Ui.Players.BassPlayer.Settings.Configuration
+namespace MediaPortal.UI.Players.BassPlayer.Settings.Configuration
 {
   public class CrossFadeDuration : LimitedNumberSelect
   {

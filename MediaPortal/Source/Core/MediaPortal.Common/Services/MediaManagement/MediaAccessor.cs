@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -317,7 +317,7 @@ namespace MediaPortal.Common.Services.MediaManagement
       if (LocalResourceProviders.ContainsKey(localFsResourceProviderId))
       {
         string folderPath;
-        if (WindowsAPI.GetSpecialFolder(WindowsAPI.SpecialFolder.MyMusic, out folderPath))
+        if (WindowsAPI.GetSpecialFolder(Environment.SpecialFolder.MyMusic, out folderPath))
         {
           folderPath = LocalFsResourceProviderBase.ToProviderPath(folderPath);
           string[] mediaCategories = new[] {DefaultMediaCategories.Audio.ToString()};
@@ -326,7 +326,7 @@ namespace MediaPortal.Common.Services.MediaManagement
           result.Add(sd);
         }
 
-        if (WindowsAPI.GetSpecialFolder(WindowsAPI.SpecialFolder.MyVideos, out folderPath))
+        if (WindowsAPI.GetSpecialFolder(Environment.SpecialFolder.MyVideos, out folderPath))
         {
           folderPath = LocalFsResourceProviderBase.ToProviderPath(folderPath);
           string[] mediaCategories = new[] { DefaultMediaCategories.Video.ToString() };
@@ -335,7 +335,7 @@ namespace MediaPortal.Common.Services.MediaManagement
           result.Add(sd);
         }
 
-        if (WindowsAPI.GetSpecialFolder(WindowsAPI.SpecialFolder.MyPictures, out folderPath))
+        if (WindowsAPI.GetSpecialFolder(Environment.SpecialFolder.MyPictures, out folderPath))
         {
           folderPath = LocalFsResourceProviderBase.ToProviderPath(folderPath);
           string[] mediaCategories = new[] { DefaultMediaCategories.Image.ToString() };
@@ -344,11 +344,6 @@ namespace MediaPortal.Common.Services.MediaManagement
           result.Add(sd);
         }
       }
-      if (result.Count > 0)
-        return result;
-      // Fallback: If no share was added for the defaults above, use the provider's root folders
-      result.AddRange(LocalBaseResourceProviders.Select(resourceProvider => resourceProvider.Metadata).Select(
-          metadata => Share.CreateNewLocalShare(ResourcePath.BuildBaseProviderPath(metadata.ResourceProviderId, "/"), metadata.Name, null)));
       return result;
     }
 
@@ -375,7 +370,7 @@ namespace MediaPortal.Common.Services.MediaManagement
         return ids;
       ICollection<MediaCategory> categoriesToConsider = GetAllMediaCategoriesInHierarchy(category);
       foreach (KeyValuePair<Guid, IMetadataExtractor> localMetadataExtractor in LocalMetadataExtractors)
-        if (mediaCategory == null || localMetadataExtractor.Value.Metadata.MediaCategories.Intersect(categoriesToConsider).Count() > 0)
+        if (mediaCategory == null || localMetadataExtractor.Value.Metadata.MediaCategories.Intersect(categoriesToConsider).Any())
           ids.Add(localMetadataExtractor.Value.Metadata.MetadataExtractorId);
       return ids;
     }
@@ -383,7 +378,7 @@ namespace MediaPortal.Common.Services.MediaManagement
     public ICollection<Guid> GetMetadataExtractorsForMIATypes(IEnumerable<Guid> miaTypeIDs)
     {
       return LocalMetadataExtractors.Where(
-          extractor => extractor.Value.Metadata.ExtractedAspectTypes.Keys.Intersect(miaTypeIDs).Count() > 0).Select(
+          extractor => extractor.Value.Metadata.ExtractedAspectTypes.Keys.Intersect(miaTypeIDs).Any()).Select(
           kvp => kvp.Key).ToList();
     }
 

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -75,7 +75,7 @@ namespace MediaPortal.Common.PluginManager
     bool IPluginItemStateTracker.RequestEnd(PluginItemRegistration itemRegistration)
     {
       ItemStateTrackerRequestEndDlgt dlgt = EndRequested;
-      return dlgt == null ? true : dlgt(itemRegistration);
+      return dlgt == null || dlgt(itemRegistration);
     }
 
     void IPluginItemStateTracker.Stop(PluginItemRegistration itemRegistration)

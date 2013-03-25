@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -23,12 +23,14 @@
 #endregion
 
 using System;
+using System.Threading;
 using MediaPortal.Common;
 using MediaPortal.Common.General;
 using MediaPortal.Common.Localization;
 using MediaPortal.Common.Logging;
 using MediaPortal.Common.Messaging;
 using MediaPortal.Common.Settings;
+using MediaPortal.Common.Threading;
 using MediaPortal.UI.Presentation.Models;
 using MediaPortal.UiComponents.Weather.Settings;
 
@@ -65,10 +67,10 @@ namespace MediaPortal.UiComponents.Weather.Models
     /// <summary>
     /// Contructs a new instance of <see cref="CurrentWeatherModel"/>. 
     /// </summary>
-    public CurrentWeatherModel()
-      : base(WEATHER_UPDATE_INTERVAL)
+    public CurrentWeatherModel() : base(true, WEATHER_UPDATE_INTERVAL)
     {
-      SetAndUpdatePreferredLocation();
+      // do initial update in its own thread to avoid delay during startup of MP2
+      ServiceRegistration.Get<IThreadPool>().Add(new DoWorkHandler(this.SetAndUpdatePreferredLocation), "SetAndUpdatePreferredLocation", QueuePriority.Normal, ThreadPriority.BelowNormal);
       SubscribeToMessages();
     }
 
@@ -88,9 +90,10 @@ namespace MediaPortal.UiComponents.Weather.Models
 
     protected override void Update()
     {
-      SetAndUpdatePreferredLocation();
+      // do update in its own thread to avoid delay
+      ServiceRegistration.Get<IThreadPool>().Add(new DoWorkHandler(SetAndUpdatePreferredLocation), "SetAndUpdatePreferredLocation", QueuePriority.Normal, ThreadPriority.BelowNormal);
     }
-
+    
     protected void SetAndUpdatePreferredLocation()
     {
       WeatherSettings settings = ServiceRegistration.Get<ISettingsManager>().Load<WeatherSettings>();
@@ -114,7 +117,7 @@ namespace MediaPortal.UiComponents.Weather.Models
       { }
 
       ServiceRegistration.Get<ILogger>().Info(result ?
-          "WeatherModel: Loaded weather data for {0}, {1}" : "WeatherModel: Failed to load weather data for {0}, {1}",
+          "CurrentWeatherModel: Loaded weather data for {0}, {1}" : "WeatherModel: Failed to load weather data for {0}, {1}",
           CurrentLocation.Name, CurrentLocation.Id);
     }
   }

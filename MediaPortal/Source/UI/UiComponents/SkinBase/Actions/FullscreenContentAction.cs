@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -111,7 +111,7 @@ namespace MediaPortal.UiComponents.SkinBase.Actions
     {
       IPlayerContextManager playerContextManager = ServiceRegistration.Get<IPlayerContextManager>();
       IWorkflowManager workflowManager = ServiceRegistration.Get<IWorkflowManager>();
-      IPlayerContext pcPrimary = playerContextManager.GetPlayerContext(PlayerManagerConsts.PRIMARY_SLOT);
+      IPlayerContext pcPrimary = playerContextManager.PrimaryPlayerContext;
       IPlayer primaryPlayer = pcPrimary == null ? null : pcPrimary.CurrentPlayer;
       IImagePlayer pp = primaryPlayer as IImagePlayer;
       IVideoPlayer vp = primaryPlayer as IVideoPlayer;
@@ -178,7 +178,7 @@ namespace MediaPortal.UiComponents.SkinBase.Actions
     public void Execute()
     {
       IPlayerContextManager playerContextManager = ServiceRegistration.Get<IPlayerContextManager>();
-      IPlayerContext pc = playerContextManager.GetPlayerContext(PlayerManagerConsts.PRIMARY_SLOT);
+      IPlayerContext pc = playerContextManager.PrimaryPlayerContext;
       if (pc == null)
         return;
       IWorkflowManager workflowManager = ServiceRegistration.Get<IWorkflowManager>();

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -265,10 +265,8 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
             Screen = Screen,
             ElementState = _elementState,
             LogicalParent = this,
-
         };
       // Set this after the other properties have been initialized to avoid duplicate work
-      // No need to set LogicalParent because styles and control templates don't bind bindings
       container.Style = MpfCopyManager.DeepCopyCutLVPs(ItemContainerStyle);
       container.ContentTemplate = MpfCopyManager.DeepCopyCutLVPs(ItemTemplate);
 

@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -25,7 +25,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Ui.Players.BassPlayer.Utils
+namespace MediaPortal.UI.Players.BassPlayer.Utils
 {
   /// <summary>
   /// Writes silence into a stream.
@@ -34,7 +34,7 @@ namespace Ui.Players.BassPlayer.Utils
   {
     #region Fields
 
-    private byte[] _Silence = new byte[1];
+    private byte[] _silence = new byte[1];
 
     #endregion
 
@@ -48,10 +48,10 @@ namespace Ui.Players.BassPlayer.Utils
     /// <returns>Number of bytes written. Always equals requestedBytes.</returns>
     public int Write(IntPtr buffer, int requestedBytes)
     {
-      if (_Silence.Length < requestedBytes)
-        Array.Resize(ref _Silence, requestedBytes);
+      if (_silence.Length < requestedBytes)
+        Array.Resize(ref _silence, requestedBytes);
 
-      Marshal.Copy(_Silence, 0, buffer, requestedBytes);
+      Marshal.Copy(_silence, 0, buffer, requestedBytes);
       return requestedBytes;
     }
 

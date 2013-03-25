@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -41,7 +41,7 @@ namespace MediaPortal.Common.Registry
   /// </para>
   /// <para>
   /// <b>Thread-Safety:</b><br/>
-  /// This class can be called from multiple threads. It synchronizes thread access to its fields via its
+  /// Methods of this class can be called from multiple threads. It synchronizes thread access to its fields via its
   /// <see cref="SyncObj"/> instance. Also accesses to all of its contained <see cref="IRegistryNode"/> instances
   /// are synchronized via the same <see cref="SyncObj"/> instance. To widen the synchronization scope for a critical
   /// code section, the <see cref="SyncObj"/> can be explicitly used to lock.

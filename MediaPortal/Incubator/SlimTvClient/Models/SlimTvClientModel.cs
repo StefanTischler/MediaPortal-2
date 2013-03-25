@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -29,15 +29,19 @@ using MediaPortal.Common;
 using MediaPortal.Common.Commands;
 using MediaPortal.Common.General;
 using MediaPortal.Common.Localization;
-using MediaPortal.Plugins.SlimTvClient.Helpers;
-using MediaPortal.Plugins.SlimTvClient.Interfaces;
-using MediaPortal.Plugins.SlimTvClient.Interfaces.Items;
+using MediaPortal.Common.Threading;
+using MediaPortal.Plugins.SlimTv.Client.Helpers;
+using MediaPortal.Plugins.SlimTv.Client.Player;
+using MediaPortal.Plugins.SlimTv.Interfaces.Items;
+using MediaPortal.Plugins.SlimTv.Interfaces.LiveTvMediaItem;
+using MediaPortal.Plugins.SlimTv.Interfaces.UPnP.Items;
 using MediaPortal.UI.Presentation.DataObjects;
 using MediaPortal.UI.Presentation.Players;
 using MediaPortal.UI.Presentation.Workflow;
 using MediaPortal.UiComponents.SkinBase.Models;
+using Timer = System.Timers.Timer;
 
-namespace MediaPortal.Plugins.SlimTvClient
+namespace MediaPortal.Plugins.SlimTv.Client.Models
 {
   /// <summary>
   /// <see cref="SlimTvClientModel"/> is the main entry model for SlimTV. It provides channel group and channel selection and 
@@ -382,10 +386,10 @@ namespace MediaPortal.Plugins.SlimTvClient
     {
       get
       {
-        IPlayerManager pm = ServiceRegistration.Get<IPlayerManager>();
-        if (pm == null)
+        IPlayerContextManager pcm = ServiceRegistration.Get<IPlayerContextManager>();
+        if (pcm == null)
           return null;
-        LiveTvPlayer player = pm[SlotIndex] as LiveTvPlayer;
+        LiveTvPlayer player = pcm[SlotIndex] as LiveTvPlayer;
         return player;
       }
     }
@@ -490,22 +494,22 @@ namespace MediaPortal.Plugins.SlimTvClient
     {
       ChannelName = channel.Name;
       IProgram currentProgram;
-      if (_tvHandler.ProgramInfo.GetCurrentProgram(channel, out currentProgram))
+      IProgram nextProgram;
+      if (_tvHandler.ProgramInfo.GetNowNextProgram(channel, out currentProgram, out nextProgram))
       {
         CurrentProgram.SetProgram(currentProgram);
         double progress = (DateTime.Now - currentProgram.StartTime).TotalSeconds /
                           (currentProgram.EndTime - currentProgram.StartTime).TotalSeconds * 100;
         _programProgressProperty.SetValue(progress);
+
+        NextProgram.SetProgram(nextProgram);
       }
       else
       {
         CurrentProgram.SetProgram(null);
+        NextProgram.SetProgram(null);
         _programProgressProperty.SetValue(100d);
       }
-
-      IProgram nextProgram;
-      if (_tvHandler.ProgramInfo.GetNextProgram(channel, out nextProgram))
-        NextProgram.SetProgram(nextProgram);
     }
 
     #endregion
@@ -541,16 +545,13 @@ namespace MediaPortal.Plugins.SlimTvClient
 
     protected int SlotIndex
     {
-      get
-      {
-        return PiPEnabled ? PlayerManagerConsts.SECONDARY_SLOT : PlayerManagerConsts.PRIMARY_SLOT;
-      }
+      get { return PiPEnabled ? PlayerContextIndex.SECONDARY : PlayerContextIndex.PRIMARY; }
     }
 
     protected override void Update()
     {
       // Don't update the current channel and program information if we are in zap osd.
-      if (!_active || _zapTimer != null)
+      if (_tvHandler == null || !_active || _zapTimer != null)
         return;
 
       if (_tvHandler.NumberOfActiveSlots < 1)
@@ -572,13 +573,15 @@ namespace MediaPortal.Plugins.SlimTvClient
         if (liveTvMediaItem != null && player != null)
         {
           ITimeshiftContext context = player.CurrentTimeshiftContext;
+          IProgram currentProgram = null;
+          IProgram nextProgram = null;
           if (context != null)
           {
             ChannelName = context.Channel.Name;
-            CurrentProgram.SetProgram(context.Program);
-            if (context.Program != null)
+            currentProgram = context.Program;
+            if (currentProgram != null)
             {
-              IProgram currentProgram = context.Program;
+              currentProgram = context.Program;
               double progress = (DateTime.Now - currentProgram.StartTime).TotalSeconds /
                                 (currentProgram.EndTime - currentProgram.StartTime).TotalSeconds * 100;
               _programProgressProperty.SetValue(progress);
@@ -586,9 +589,11 @@ namespace MediaPortal.Plugins.SlimTvClient
               IList<IProgram> nextPrograms;
               DateTime nextTime = currentProgram.EndTime.Add(TimeSpan.FromSeconds(10));
               if (_tvHandler.ProgramInfo.GetPrograms(context.Channel, nextTime, nextTime, out nextPrograms))
-                NextProgram.SetProgram(nextPrograms[0]);
+                nextProgram = nextPrograms[0];
             }
           }
+          CurrentProgram.SetProgram(currentProgram);
+          NextProgram.SetProgram(nextProgram);
         }
       }
     }
@@ -620,11 +625,14 @@ namespace MediaPortal.Plugins.SlimTvClient
         // Use local variable, otherwise delegate argument is not fixed
         IChannel currentChannel = channel;
 
-        ChannelProgramListItem item = new ChannelProgramListItem(currentChannel, GetNowAndNextProgramsList(currentChannel))
+        ChannelProgramListItem item = new ChannelProgramListItem(currentChannel, null)
         {
+          Programs = new ItemsList { GetNoProgramPlaceholder(), GetNoProgramPlaceholder() },
           Command = new MethodDelegateCommand(() => Tune(currentChannel))
         };
         item.AdditionalProperties["CHANNEL"] = channel;
+        // Load programs asynchronously, this increases performance of list building
+        GetNowAndNextProgramsList(item, currentChannel);
         _channelList.Add(item);
       }
       CurrentGroupChannels.FireChange();
@@ -632,55 +640,76 @@ namespace MediaPortal.Plugins.SlimTvClient
 
     private void UpdateProgramForChannel(IChannel channel)
     {
-      IProgram program;
-      if (_tvHandler.ProgramInfo.GetCurrentProgram(channel, out program))
-        _selectedCurrentProgramProperty.SetValue(FormatProgram(program));
-
-      if (_tvHandler.ProgramInfo.GetNextProgram(channel, out program))
-        _selectedNextProgramProperty.SetValue(FormatProgram(program));
-    }
-
-    protected ItemsList GetNowAndNextProgramsList(IChannel channel)
-    {
-      ItemsList channelPrograms = new ItemsList();
-      IProgram program;
-      // We do not check return code here, because CreateProgramListItem creates placeholder when no program is available
-      _tvHandler.ProgramInfo.GetCurrentProgram(channel, out program);
-      CreateProgramListItem(program, channelPrograms);
-
-      _tvHandler.ProgramInfo.GetNextProgram(channel, out program);
-      CreateProgramListItem(program, channelPrograms);
-
-      return channelPrograms;
-    }
-
-    private static void CreateProgramListItem(IProgram program, ItemsList channelPrograms)
-    {
-      ProgramListItem item;
-      if (program == null)
-        item = GetNoProgramPlaceholder();
-      else
+      IProgram currentProgram;
+      IProgram nextProgram;
+      if (_tvHandler.ProgramInfo.GetNowNextProgram(channel, out currentProgram, out nextProgram))
       {
-        ProgramProperties programProperties = new ProgramProperties();
-        programProperties.SetProgram(program);
-        item = new ProgramListItem(programProperties);
+        _selectedCurrentProgramProperty.SetValue(FormatProgram(currentProgram));
+        _selectedNextProgramProperty.SetValue(FormatProgram(nextProgram));
       }
-      item.AdditionalProperties["PROGRAM"] = program;
-      channelPrograms.Add(item);
     }
 
-    private static ProgramListItem GetNoProgramPlaceholder()
+    protected void GetNowAndNextProgramsList(ChannelProgramListItem channelItem, IChannel channel)
     {
-      ILocalization loc = ServiceRegistration.Get<ILocalization>();
-      DateTime today = FormatHelper.GetDay(DateTime.Now);
+      IThreadPool threadPool = ServiceRegistration.Get<IThreadPool>();
+      threadPool.Add(() =>
+                       {
+                         IProgram currentProgram;
+                         IProgram nextProgram;
+                         // We do not check return code here. Results for currentProgram or nextProgram can be null, this is ok here, as Program will be filled with placeholder.
+                         if (_tvHandler.ProgramInfo == null)
+                           return;
+                         _tvHandler.ProgramInfo.GetNowNextProgram(channel, out currentProgram, out nextProgram);
+                         CreateProgramListItem(currentProgram, channelItem.Programs[0]);
+                         CreateProgramListItem(nextProgram, channelItem.Programs[1], currentProgram);
+                       },
+                       QueuePriority.Low
+                     );
+    }
 
-      ProgramProperties programProperties = new ProgramProperties(today, today.AddDays(1))
+    private static void CreateProgramListItem(IProgram program, ListItem itemToUpdate, IProgram previousProgram = null)
+    {
+      ProgramListItem item = itemToUpdate as ProgramListItem;
+      if (item == null)
+        return;
+      item.Program.SetProgram(program ?? GetNoProgram(previousProgram));
+      item.AdditionalProperties["PROGRAM"] = program;
+    }
+
+    private static ProgramListItem GetNoProgramPlaceholder(IProgram previousProgram = null)
+    {
+      IProgram placeHolder = GetNoProgram(previousProgram);
+      ProgramProperties programProperties = new ProgramProperties(placeHolder.StartTime, placeHolder.EndTime)
       {
-        Title = loc.ToString("[SlimTvClient.NoProgram]"),
-        StartTime = today,
-        EndTime = today.AddDays(1)
+        Title = placeHolder.Title,
+        StartTime = placeHolder.StartTime,
+        EndTime = placeHolder.EndTime
       };
       return new ProgramListItem(programProperties);
+    }
+
+    private static IProgram GetNoProgram(IProgram previousProgram = null)
+    {
+      ILocalization loc = ServiceRegistration.Get<ILocalization>();
+      DateTime from;
+      DateTime to;
+      if (previousProgram != null)
+      {
+        from = previousProgram.EndTime;
+        to = FormatHelper.GetDay(DateTime.Now).AddDays(1);
+      }
+      else
+      {
+        from = FormatHelper.GetDay(DateTime.Now);
+        to = from.AddDays(1);
+      }
+
+      return new Program
+      {
+        Title = loc.ToString("[SlimTvClient.NoProgram]"),
+        StartTime = from,
+        EndTime = to
+      };
     }
 
     private static string FormatProgram(IProgram program)

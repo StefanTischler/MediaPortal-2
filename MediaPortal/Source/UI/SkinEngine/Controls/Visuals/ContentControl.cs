@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -159,7 +159,6 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
         return;
       if (!PreparingOrRunning)
         return;
-      _contentPresenterInvalid = false;
       object content = Content;
       if (content == null)
         // In default skin, we have the constellation that a Button is used as template control inside a ListViewItem;
@@ -170,10 +169,11 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
       ContentPresenter presenter = FindContentPresenter();
       if (presenter == null)
         return;
+      _contentPresenterInvalid = false;
       presenter.HorizontalContentAlignment = HorizontalContentAlignment;
       presenter.VerticalContentAlignment = VerticalContentAlignment;
       presenter.ContentTemplate = MpfCopyManager.DeepCopyCutLVPs(ContentTemplate); // Setting LogicalParent is not necessary because DataTemplate doesn't bind bindings
-      presenter.SetContent(MpfCopyManager.DeepCopyCutLVPs(content));
+      presenter.Content = MpfCopyManager.DeepCopyCutLVPs(content);
     }
 
     protected virtual ContentPresenter FindContentPresenter()

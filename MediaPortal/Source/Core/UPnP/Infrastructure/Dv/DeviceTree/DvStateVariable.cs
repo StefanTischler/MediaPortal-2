@@ -1,7 +1,7 @@
-#region Copyright (C) 2007-2012 Team MediaPortal
+#region Copyright (C) 2007-2013 Team MediaPortal
 
 /*
-    Copyright (C) 2007-2012 Team MediaPortal
+    Copyright (C) 2007-2013 Team MediaPortal
     http://www.team-mediaportal.com
 
     This file is part of MediaPortal 2
@@ -140,7 +140,7 @@ namespace UPnP.Infrastructure.Dv.DeviceTree
     /// Enumerates legal string values.
     /// PROHIBITED for other data types than the UPnP standard string.
     /// This parameter MUST NOT be set if the <see cref="DataType"/> is a <see cref="DvExtendedDataType"/>.
-    /// Values must be < 32 characters.
+    /// Values must be &lt; 32 characters.
     /// </remarks>
     public IList<string> AllowedValueList
     {
