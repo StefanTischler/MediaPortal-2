@@ -37,6 +37,7 @@ using MediaPortal.Common.General;
 using MediaPortal.UI.SkinEngine.Commands;
 using MediaPortal.UI.SkinEngine.ContentManagement;
 using MediaPortal.UI.SkinEngine.Controls.Transforms;
+using MediaPortal.UI.SkinEngine.Controls.Visuals.Effects;
 using MediaPortal.UI.SkinEngine.Fonts;
 using MediaPortal.UI.SkinEngine.InputManagement;
 using MediaPortal.UI.SkinEngine.MpfElements;
@@ -150,10 +151,10 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
 
     protected PrimitiveBuffer _opacityMaskContext;
     protected PrimitiveBuffer _effectContext;
+    protected static Effects.Effect _defaultEffect; 
 
     protected bool _updateOpacityMask = false;
     protected RectangleF _lastOccupiedTransformedBounds = RectangleF.Empty;
-    protected Size _lastOpacityRenderSize = Size.Empty;
 
     protected bool _styleSet = false;
 
@@ -1665,7 +1666,7 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
     {
     }
 
-    public void RenderToSurface(RenderTargetAsset renderTarget, RenderContext renderContext)
+    public void RenderToSurface(RenderTargetAsset renderTarget, RenderContext renderContext )
     {
       // We do the following here:
       // 1. Set the transformation matrix to match the render surface's size
@@ -1682,6 +1683,7 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
         oldTransform = GraphicsDevice.FinalTransform;
         GraphicsDevice.SetCameraProjection(renderTarget.Width, renderTarget.Height);
       }
+
       // Get the current backbuffer
       using (Surface backBuffer = GraphicsDevice.Device.GetRenderTarget(0))
       {
@@ -1694,12 +1696,49 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
         // Render the control into the given texture
         DoRender(renderContext);
 
+        // Render opacity brush so that it modifies the alpha channel in the target
+        RenderOpacityBrush(renderContext);
+
         // Restore the backbuffer
         GraphicsDevice.Device.SetRenderTarget(0, backBuffer);
       }
       // Restore standard transformation matrix
       if (oldTransform.HasValue)
         GraphicsDevice.FinalTransform = oldTransform.Value;
+    }
+
+    /// <summary>
+    /// Render the current Opacity brush to a rectangle covering our the given bounds. Blending is applied such that destination 
+    /// RGB will remain unchanged while destination alpha will be modulated by the opacity brush alpha.
+    /// </summary>
+    /// <param name="renderContext">Context information</param>
+    /// <param name="bounds">Rectangle to use for drawing the brush</param>
+    private void RenderOpacityBrush(RenderContext renderContext)
+    {
+        Brushes.Brush opacityMask = OpacityMask;
+        if (opacityMask != null)
+        {
+            // If the control bounds have changed we need to update our primitive context to make the 
+            // texture coordinates match up
+            if (_updateOpacityMask || _opacityMaskContext == null || _lastOccupiedTransformedBounds != renderContext.OccupiedTransformedBounds)
+            {
+                UpdateOpacityMask(renderContext.OccupiedTransformedBounds, renderContext.ZOrder);
+                _lastOccupiedTransformedBounds = renderContext.OccupiedTransformedBounds;
+                _updateOpacityMask = false;
+            }
+
+            GraphicsDevice.EnableAlphaChannelBlending();
+            GraphicsDevice.DisableAlphaTest();
+
+            // Now render the OpacityMask brush
+            if (opacityMask.BeginRenderBrush(_opacityMaskContext, new RenderContext(Matrix.Identity, _lastOccupiedTransformedBounds)))
+            {
+                _opacityMaskContext.Render(0);
+                opacityMask.EndRender();
+            }
+            GraphicsDevice.DisableAlphaChannelBlending();
+            GraphicsDevice.EnableAlphaTest();
+        }
     }
 
     public override void Render(RenderContext parentRenderContext)
@@ -1726,7 +1765,7 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
       { 
         // Control has an opacity mask or Effect
         RenderTextureAsset renderTexture = ContentManager.Instance.GetRenderTexture(GLOBAL_RENDER_TEXTURE_ASSET_KEY);
-        // Get global render surface and render texture or create them if they dosn't exist
+        // Get global render surface and render texture or create them if they don't exist
         RenderTargetAsset renderSurface = ContentManager.Instance.GetRenderTarget(GLOBAL_RENDER_SURFACE_ASSET_KEY);
 
         // Ensure they are allocated
@@ -1741,61 +1780,37 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
 
         // Unfortunately, brushes/brush effects are based on textures and cannot work with surfaces, so we need this additional copy step
         GraphicsDevice.Device.StretchRectangle(
-            renderSurface.Surface, new Rectangle(Point.Empty, renderSurface.Size),
-            renderTexture.Surface0, new Rectangle(Point.Empty, renderTexture.Size),
-            TextureFilter.None);
-
-        // Add bounds to our calculated, occupied area.
-        // If we don't do that, lines at the border of this element might be dimmed because of the filter (see OpacityMask test in GUITestPlugin).
-        // The value was just found by testing. Any better solution is welcome.
-        if (opacityMask != null)
-        {
-          const float OPACITY_MASK_BOUNDS = 0.9f;
-          RectangleF occupiedTransformedBounds = tempRenderContext.OccupiedTransformedBounds;
-          occupiedTransformedBounds.X -= OPACITY_MASK_BOUNDS;
-          occupiedTransformedBounds.Y -= OPACITY_MASK_BOUNDS;
-          occupiedTransformedBounds.Width += OPACITY_MASK_BOUNDS * 2;
-          occupiedTransformedBounds.Height += OPACITY_MASK_BOUNDS * 2;
-
-          // If the control bounds have changed we need to update our primitive context to make the 
-          // texture coordinates match up
-          if (_updateOpacityMask || _opacityMaskContext == null ||
-              occupiedTransformedBounds != _lastOccupiedTransformedBounds ||
-            renderSurface.Size != _lastOpacityRenderSize)
-          {
-            UpdateOpacityMask(occupiedTransformedBounds, renderSurface.Width, renderSurface.Height, localRenderContext.ZOrder);
-            _lastOccupiedTransformedBounds = occupiedTransformedBounds;
-            _updateOpacityMask = false;
-            _lastOpacityRenderSize = renderSurface.Size;
-          }
-
-          // Now render the opacity texture with the OpacityMask brush)
-          if (opacityMask.BeginRenderOpacityBrush(renderTexture.Texture, new RenderContext(Matrix.Identity, bounds)))
-          {
-            _opacityMaskContext.Render(0);
-            opacityMask.EndRender();
-          }
-        }
+          renderSurface.Surface, new Rectangle(Point.Empty, renderSurface.Size),
+          renderTexture.Surface0, new Rectangle(Point.Empty, renderTexture.Size),
+          TextureFilter.None);
 
         // Render Effect
         Effects.Effect effect = Effect;
-        if (effect != null)
+        if (effect == null)
         {
-          UpdateEffectMask(tempRenderContext.OccupiedTransformedBounds, renderTexture.Width, renderTexture.Height, localRenderContext.ZOrder);
-          if (effect.BeginRender(renderTexture.Texture, new RenderContext(Matrix.Identity, 1.0d, bounds, localRenderContext.ZOrder)))
+          // Use a default effect to draw the render target if none is set
+          if (_defaultEffect == null)
           {
-            _effectContext.Render(0);
-            effect.EndRender();
+            _defaultEffect = new SimpleShaderEffect() { ShaderEffectName = "normal" };
           }
+
+          effect = _defaultEffect;
         }
 
+        UpdateEffectMask(effect, tempRenderContext.OccupiedTransformedBounds, renderTexture.Width, renderTexture.Height, localRenderContext.ZOrder);
+        if (effect.BeginRender(renderTexture.Texture, new RenderContext(Matrix.Identity, 1.0d, bounds, localRenderContext.ZOrder)))
+        {
+          _effectContext.Render(0);
+          effect.EndRender();
+        }
       }
+
       // Calculation of absolute render size (in world coordinate system)
       parentRenderContext.IncludeTransformedContentsBounds(localRenderContext.OccupiedTransformedBounds);
       _lastZIndex = localRenderContext.ZOrder;
     }
 
-    protected void UpdateEffectMask(RectangleF bounds, float width, float height, float zPos)
+    protected void UpdateEffectMask(Effects.Effect effect, RectangleF bounds, float width, float height, float zPos)
     {
       Color4 col = ColorConverter.FromColor(Color.White);
       col.Alpha *= (float) Opacity;
@@ -1806,13 +1821,13 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
           bounds.Left / width, bounds.Top / height, bounds.Right / width, bounds.Bottom / height,
           zPos, color);
 
-      Effect.SetupEffect(this, ref verts, zPos, false);
+      effect.SetupEffect(this, ref verts, zPos, false);
       PrimitiveBuffer.SetPrimitiveBuffer(ref _effectContext, ref verts, PrimitiveType.TriangleFan);
     }
 
     #region Opacitymask
 
-    void UpdateOpacityMask(RectangleF bounds, float width, float height, float zPos)
+    void UpdateOpacityMask(RectangleF bounds, float zPos)
     {
       Color4 col = ColorConverter.FromColor(Color.White);
       col.Alpha *= (float) Opacity;
@@ -1820,7 +1835,7 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
 
       PositionColoredTextured[] verts = PositionColoredTextured.CreateQuad_Fan(
           bounds.Left - 0.5f, bounds.Top - 0.5f, bounds.Right - 0.5f, bounds.Bottom - 0.5f,
-          bounds.Left / width, bounds.Top / height, bounds.Right / width, bounds.Bottom / height,
+          0.0f, 0.0f, 1.0f, 1.0f,
           zPos, color);
 
       OpacityMask.SetupBrush(this, ref verts, zPos, false);

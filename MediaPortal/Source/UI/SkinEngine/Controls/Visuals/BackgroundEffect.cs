@@ -68,7 +68,7 @@ namespace MediaPortal.UI.SkinEngine.Controls.Visuals
 
       Effect effect = Effect;
 
-      UpdateEffectMask(localRenderContext.OccupiedTransformedBounds, desc.Width, desc.Height, localRenderContext.ZOrder);
+      UpdateEffectMask(effect, localRenderContext.OccupiedTransformedBounds, desc.Width, desc.Height, localRenderContext.ZOrder);
       if (effect.BeginRender(_texture, new RenderContext(Matrix.Identity, 1.0d, bounds, localRenderContext.ZOrder)))
       {
         _effectContext.Render(0);
