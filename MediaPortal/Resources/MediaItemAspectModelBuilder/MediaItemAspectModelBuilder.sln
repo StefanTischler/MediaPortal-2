@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaItemAspectModelBuilder", "MediaItemAspectModelBuilder\MediaItemAspectModelBuilder.csproj", "{634C0633-0C9D-4408-B2CB-AA026AAF4A28}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaPortal.Common", "..\..\Source\Core\MediaPortal.Common\MediaPortal.Common.csproj", "{ECF060E7-CAA1-4466-851F-F80B857641EA}"
