@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+  This file contains the definition for the current version information and writes
+  them to various places before compiling the source code.
+
+  Partly influences by:
+      http://dotnetninja.de/2013/06/unobtrusive-msbuild-using-git-information-in-your-assemblies/
+      https://github.com/SignalR/SignalR/tree/master/build
+  -->
+  <Import Project="$(MSBuildProjectDirectory)\Build.props" />
+  <Import Project="$(MSBuildProjectDirectory)\Build.tasks" />
+  <Import Project="$(MSBuildCommunityTasksPath)\MSBuild.Community.Tasks.Targets" />
+
+  <!-- Workaround for missing task declaration in MSbuildTasks project (pull request already sent) -->
+  <UsingTask Condition="Exists($(MSBuildCommunityTasksLib))"
+             AssemblyFile="$(MSBuildCommunityTasksLib)"
+             TaskName="MSBuild.Community.Tasks.Git.GitBranch"
+             />
+
+  <Target Name="UpdateVersion">
+    <PropertyGroup>
+
+      <!-- Define the global version information here. -->
+      <MajorVersion>2</MajorVersion>
+      <MinorVersion>0</MinorVersion>
+      <PatchVersion>0</PatchVersion>
+      <BuildVersion>0</BuildVersion>
+
+      <!--
+      Change this to set the build quality of the project. Use values like "alpha", "beta", "rc1", "rtm", etc.
+      These values are used in SemVer, so make sure to always increase these alphabetically.
+      For more infos about SemVer see http://semver.org/
+      -->
+      <BuildQuality>alpha2</BuildQuality>
+
+      <!--  -->
+      <BuildTime>$([System.DateTime]::UtcNow.ToString("yyyy-MM-dd HH:mm:ss"))</BuildTime>
+      <AssemblyCopyright>Copyright &#169; Team MediaPortal 2007 - $([System.DateTime]::UtcNow.Year)</AssemblyCopyright>
+    </PropertyGroup>
+
+    <!-- Read environment information into properties. -->
+    <GitVersion LocalPath="$(ProjectRoot)">
+      <Output TaskParameter="CommitHash" PropertyName="CommitHash" />
+    </GitVersion>
+    <GitBranch LocalPath="$(ProjectRoot)">
+      <Output TaskParameter="Branch" PropertyName="GitBranch" />
+    </GitBranch>
+    <Computer>
+      <Output TaskParameter="Name" PropertyName="BuildMachineName" />
+      <Output TaskParameter="OSPlatform" PropertyName="BuildMachineOSPlatform" />
+      <Output TaskParameter="OSVersion" PropertyName="BuildMachineOSVersion" />
+    </Computer>
+
+    <!-- Now build additional properties based on the existing ones. -->
+    <PropertyGroup>
+      <PrereleaseTagWithSeparator Condition="$(BuildQuality) != ''">-$(BuildQuality)</PrereleaseTagWithSeparator>
+      <GitCommitInformation> @ $(CommitHash) on $(BuildTime)</GitCommitInformation>
+
+      <AssemblyVersion>$(MajorVersion).$(MinorVersion).$(PatchVersion)</AssemblyVersion>
+      <AssemblyFileVersion>$(MajorVersion).$(MinorVersion).$(PatchVersion).$(BuildVersion)</AssemblyFileVersion>
+      <AssemblyInformationalVersion>$(MajorVersion).$(MinorVersion).$(PatchVersion)$(PrereleaseTagWithSeparator)$(GitCommitInformation)</AssemblyInformationalVersion>
+    </PropertyGroup>
+
+    <!-- Define files and content which require updates using regular expressions. -->
+    <ItemGroup>
+      <RegexTransform Include="$(ProjectRoot)\Source\Core\MediaPortal.Common\VersionInfo\VersionInfo.cs">
+        <Find>AssemblyVersion\("[\d\.]+"\)</Find>
+        <ReplaceWith>AssemblyVersion("$(AssemblyVersion)")</ReplaceWith>
+      </RegexTransform>
+      <RegexTransform Include="$(ProjectRoot)\Source\Core\MediaPortal.Common\VersionInfo\VersionInfo.cs">
+        <Find>AssemblyFileVersion\("[\d\.]+"\)</Find>
+        <ReplaceWith>AssemblyFileVersion("$(AssemblyFileVersion)")</ReplaceWith>
+      </RegexTransform>
+      <RegexTransform Include="$(ProjectRoot)\Source\Core\MediaPortal.Common\VersionInfo\VersionInfo.cs">
+        <Find>AssemblyInformationalVersion\(".+"\)</Find>
+        <ReplaceWith>AssemblyInformationalVersion("$(AssemblyInformationalVersion)")</ReplaceWith>
+      </RegexTransform>
+    </ItemGroup>
+
+    <Message Text="..:: BUILD ENVIRONMENT ::.."/>
+    <Message Text="BuildTime:              $(BuildTime)"/>
+    <Message Text="BuildMachineName:       $(BuildMachineName)"/>
+    <Message Text="BuildMachineOSPlatform: $(BuildMachineOSPlatform)"/>
+    <Message Text="BuildMachineOSVersion:  $(BuildMachineOSVersion)"/>
+    <Message Text="GitBranch:              $(GitBranch)"/>
+    <Message Text="CommitHash:             $(CommitHash)"/>
+    <Message Text="..:: BUILD ENVIRONMENT END ::.."/>
+
+    <Message Text="..:: ASSEMBLY INFO ::.."/>
+    <Message Text="AssemblyVersion:              $(AssemblyVersion)"/>
+    <Message Text="AssemblyFileVersion:          $(AssemblyFileVersion)"/>
+    <Message Text="AssemblyInformationalVersion: $(AssemblyInformationalVersion)"/>
+    <Message Text="AssemblyCopyright:            $(AssemblyCopyright)"/>
+    <Message Text="..:: ASSEMBLY INFO END ::.."/>
+
+    <RegexTransform Items="@(RegexTransform)" />
+  </Target>
+
+</Project>
